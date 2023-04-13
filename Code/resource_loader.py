@@ -1,5 +1,6 @@
 import pickle
 import numpy as np
+from liwc_readDict import readDict
 
 
 #Opens the vocabulary file and returns it as a dictionary
@@ -34,9 +35,13 @@ def load_NRC(nrc_path):
 
     return emotion_words
 
-#Opens the LIWC lexicon and returns
+#Opens the LIWC lexicon and returns dict with keys categories, values words in cat
 def load_LIWC(path):
     liwc_dict = {}
 
-    for 
+    for (w,c) in readDict(path):
+        if c not in liwc_dict:
+            liwc_dict[c] = []
+        liwc_dict[c].append(w)
+    return liwc_dict
 
