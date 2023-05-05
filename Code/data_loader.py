@@ -20,6 +20,7 @@ def load_erisk_data(writings_df, hyperparams_features, by_subset=True,
     liwc_dict = load_LIWC(hyperparams_features['liwc_path'])
     liwc_categories = set(liwc_dict.keys())
 
+    #SEE ERISK.IPYNB FOR DIFFERENT VERSION
     #creating train, validation and test sets
     training_subjects = list(set(writings_df[writings_df['subset']=='train'].subject))
     test_subjects = list(set(writings_df[writings_df['subset'] == 'test'].subject))
