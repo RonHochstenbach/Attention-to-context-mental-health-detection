@@ -1,6 +1,35 @@
 import logging
 
 from resource_loader import load_vocabulary, load_NRC, load_LIWC
+from read_erisk_data import read_texts_2019
+
+def load_data(task):
+    root_dir = '/Users/ronhochstenbach/Desktop/Thesis/Data'
+
+    if task == "Depression":
+        datadirs_T1_2018 = {
+            'train': ['train/positive_examples_anonymous_chunks/', 'train/positive_examples_anonymous_chunks/',
+                      'test/'],
+            'test': ['task 1 - depression (test split, train split is 2017 data)/']
+        }
+        datadir_root_T1_2018 = {
+            'train': root_dir + '/2017/',
+            'test': root_dir + '/2018/'
+        }
+
+        labels_files_T1_2018 = {
+            'train': ['train/risk_golden_truth.txt', 'test/test_golden_truth.txt'],
+            'test': ['task 1 - depression (test split, train split is 2017 data)/risk-golden-truth-test.txt']
+        }
+
+        writings_df = read_texts_2019(datadir_root_T1_2018,
+                  datadirs_T1_2018,
+                   labels_files_T1_2018,
+                   chunked_subsets=['train', 'test'])
+
+
+
+    return writings_df
 
 def load_erisk_data(writings_df, hyperparams_features, by_subset=True,
                     pronouns = ["i", "me", "my", "mine", "myself"],

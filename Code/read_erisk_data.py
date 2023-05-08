@@ -45,16 +45,19 @@ def read_texts_2019(datadir_root_T1_2019,
                 chunkdirs = [os.path.join(datadir_root_T1_2019[subset], subdir)]
 
             for chunkdir in chunkdirs:
-                print(chunkdir)
+                #print(chunkdir)
                 if not os.path.isdir(chunkdir):
+                    print(chunkdir + " is not a directory")
                     continue
                 for subject_file in os.listdir(chunkdir):
                     writings[subset].extend(read_subject_writings(os.path.join(chunkdir, subject_file)))
         writings_df_part = pd.DataFrame(writings[subset])
         # add a suffix for users in the test -- the numbers are duplicated with the ones in train
+        #print(writings_df_part)
+        #print(writings_df_part.keys())
         if subset == 'test':
             writings_df_part['subject'] = writings_df_part['subject'].apply(lambda s: s + test_suffix)
-            print(subset, writings_df_part.subject)
+            #print(subset, writings_df_part.subject)
         writings_df_part['subset'] = subset
         writings_df = pd.concat([writings_df, writings_df_part])
         writings_df.reindex()
