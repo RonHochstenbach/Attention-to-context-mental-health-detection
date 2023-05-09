@@ -139,3 +139,7 @@ def load_erisk_server_data(dataround_json, tokenizer,
 
     return user_level_texts, subjects_split
 
+#save datasets
+task = "Depression"
+load_data(task).to_csv("/Users/ronhochstenbach/Desktop/Thesis/Data/df_" + task)
+
