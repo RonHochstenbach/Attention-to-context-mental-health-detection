@@ -4,7 +4,7 @@ from resource_loader import load_vocabulary, load_NRC, load_LIWC
 from read_erisk_data import read_texts_2019
 
 def load_data(task):
-    root_dir = '/Users/ronhochstenbach/Desktop/Thesis/Data'
+    root_dir = '/Users/ronhochstenbach/Desktop/Thesis/Data/Raw Data'
 
     if task == "Depression":
         datadirs_T1_2018 = {
@@ -141,5 +141,4 @@ def load_erisk_server_data(dataround_json, tokenizer,
 
 #save datasets
 task = "Depression"
-load_data(task).to_csv("/Users/ronhochstenbach/Desktop/Thesis/Data/df_" + task)
-
+load_data(task).to_csv("/Users/ronhochstenbach/Desktop/Thesis/Data/Processed Data/df_" + task)
