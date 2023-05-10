@@ -3,7 +3,7 @@ from collections import Counter
 
 
 from resource_loader import load_vocabulary, load_NRC, load_LIWC
-from read_erisk_data import read_texts_2019
+from read_erisk_data import read_texts_2019, read_subject_writings
 
 def load_data(task):
     root_dir = '/Users/ronhochstenbach/Desktop/Thesis/Data/Raw Data'
@@ -35,8 +35,7 @@ def load_data(task):
 
 
 def load_erisk_data(writings_df, voc_size, emotion_lexicon, liwc_categories, logger, emotions=
-['anger', 'anticipation', 'disgust', 'fear', 'joy',
- 'negative', 'positive', 'sadness', 'surprise', 'trust'], by_subset=True,
+                    ['anger', 'anticipation', 'disgust', 'fear', 'joy', 'negative', 'positive', 'sadness', 'surprise', 'trust'], by_subset=True,
                     pronouns=["i", "me", "my", "mine", "myself"],
                     train_prop=0.7, valid_prop=0.3, test_slice=2,
                     nr_slices=5,
@@ -135,47 +134,7 @@ def load_erisk_data(writings_df, voc_size, emotion_lexicon, liwc_categories, log
 
     return user_level_texts, subjects_split, vocabulary
 
-def load_erisk_server_data(dataround_json, tokenizer,
-                           logger = None, verbose = 0):
-    if verbose:
-        if not logger:
-            logger = logging.getLogger('training')
-            ch = logging.StreamHandler(sys.stdout)
-            # create formatter
-            formatter = logging.Formatter("%(asctime)s;%(levelname)s;%(message)s")
-            # add formatter to ch
-            ch.setFormatter(formatter)
-            # add ch to logger
-            logger.addHandler(ch)
-            logger.setLevel(logging.DEBUG)
-        logger.debug("Loading data...\n")
-
-    subjects_split = {'test': []}
-    user_level_texts = {}
-
-    for datapoint in dataround_json:
-        words = []
-        raw_text = ""
-        if "title" in datapoint:
-            tokenized_title = tokenizer.tokenize(datapoint["title"])
-            words.extend(tokenized_title)
-            raw_text += datapoint["title"]
-        if "content" in datapoint:
-            tokenized_text = tokenizer.tokenize(datapoint["content"])
-            words.extend(tokenized_text)
-            raw_text += datapoint["content"]
-
-        if datapoint["nick"] not in user_level_texts.keys():
-            user_level_texts[datapoint["nick"]] = {}
-            user_level_texts[datapoint["nick"]]['texts'] = [words]
-            user_level_texts[datapoint["nick"]]['raw'] = [raw_text]
-            subjects_split['test'].append(datapoint['nick'])
-        else:
-            user_level_texts[datapoint["nick"]]['texts'].append(words)
-            user_level_texts[datapoint["nick"]]['raw'].append(raw_text)
-
-    return user_level_texts, subjects_split
 
 #save datasets
-task = "Depression"
-load_data(task).to_csv("/Users/ronhochstenbach/Desktop/Thesis/Data/Processed Data/df_" + task)
+# task = "Depression"
+# load_data(task).to_csv("/Users/ronhochstenbach/Desktop/Thesis/Data/Processed Data/df_" + task)

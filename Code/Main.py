@@ -1,9 +1,10 @@
 import pandas as pd
 import logging
+import csv
 
 from resource_loader import load_NRC, readDict
 from data_loader import load_erisk_data
-
+from auxilliary_functions import tokenize_fields, tokenize_tweets
 
 root_dir = "/Users/ronhochstenbach/Desktop/Thesis/Data"
 
@@ -11,7 +12,11 @@ logger = logging.getLogger('training')
 
 #IMPORT DATA
 task = "Depression"
-writings_df = pd.read_csv(root_dir +  "/Processed Data/df_" + task)
+#writings_df = pd.read_csv(root_dir +  "/Processed Data/df_" + task)
+#writings_df = tokenize_fields(writings_df, tokenize_fct=tokenize_tweets, columns=['text'])
+#writings_df.to_csv("/Users/ronhochstenbach/Desktop/Thesis/Data/Processed Data/tokenized_df_" + task)
+
+writings_df = pd.read_csv(root_dir +  "/Processed Data/tokenized_df_" + task)
 
 #print("Average number of posts per user", writings_df.groupby('subject').count().title.mean())
 #print("Average number of comments per user", writings_df.groupby('subject').count().text.mean())
@@ -38,8 +43,6 @@ user_level_data, subjects_split, vocabulary = load_erisk_data(writings_df,
                                                         logger = logger,
                                                           liwc_categories= categories
                                                            )
-
-
 
 
 
