@@ -52,7 +52,7 @@ class DataGenerator(Sequence):
             self.emotion_lexicon = load_NRC(hyperparams_features['nrc_lexicon_path'])
             self.emotions = list(self.emotion_lexicon.keys())
         self.liwc_dict = load_LIWC(hyperparams_features['liwc_path'])
-        self.liwc_words_for_categories = pickle.load(open(hyperparams_features["liwc_words_cached"], "rb"))
+        #self.liwc_words_for_categories = pickle.load(open(hyperparams_features["liwc_words_cached"], "rb"))
         if ablate_liwc:
             self.liwc_categories = []
         else:
