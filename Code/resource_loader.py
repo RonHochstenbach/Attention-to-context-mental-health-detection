@@ -83,4 +83,10 @@ def readDict(dictionaryPath):
             finalDict.append([key, workingValue])
     return finalDict
 
+def load_stopwords(path):
+    stopwords_list = []
+    with open(path) as f:
+        for line in f:
+            stopwords_list.append(f)
+    return stopwords_list
 

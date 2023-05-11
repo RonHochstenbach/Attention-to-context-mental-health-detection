@@ -5,6 +5,7 @@ import csv
 from resource_loader import load_NRC, readDict
 from data_loader import load_erisk_data
 from auxilliary_functions import tokenize_fields, tokenize_tweets
+from data_generator import DataGenerator
 
 root_dir = "/Users/ronhochstenbach/Desktop/Thesis/Data"
 
@@ -44,5 +45,20 @@ user_level_data, subjects_split, vocabulary = load_erisk_data(writings_df,
                                                           liwc_categories= categories
                                                            )
 
+x_data = {'train': [], 'valid': [], 'test': []}
+y_data = {'train': [], 'valid': [], 'test': []}
+for set_type in ['train', 'valid', 'test']:
+    total_positive = 0
+    for x, y in DataGenerator(user_level_data, subjects_split, sample_seqs=False, max_posts_per_user=None,
+                                          set_type=set_type, hierarchical=True, post_groups_per_user=1,
+                              posts_per_group=50, shuffle=False,
+                             sampling_distr='exp', liwc_words_for_categories=liwc_words_for_categories,
+                             compute_liwc=True, classes=3):
+#         total_positive += pd.Series(y).sum()
+        x_data[set_type].append(x)
+        y_data[set_type].append(y)
+        logger.info("%s %s positive examples\n" % (total_positive, set_type))
 
+print(x_data)
+print(y_data)
 
