@@ -4,10 +4,14 @@ import csv
 import pickle
 from tqdm import tqdm
 
+from tensorflow.keras import optimizers
+
 from resource_loader import load_NRC, readDict
 from data_loader import load_erisk_data
 from auxilliary_functions import tokenize_fields, tokenize_tweets
 from data_generator import DataGenerator
+from models import build_hierarchical_model
+from train import initialize_experiment, train
 
 root_dir = "/Users/ronhochstenbach/Desktop/Thesis/Data"
 
@@ -24,6 +28,14 @@ hyperparams_features = {
     #"liwc_words_cached": "data/liwc_categories_for_vocabulary_erisk_clpsych_stop_20K.pkl",
     #"pretrained_model_path": "models/lstm_symanto_hierarchical64"
 }
+
+hyperparams = {
+    "lr" : e-4
+    
+}
+
+hyperparams['optimizer'] = optimizers.Adam(lr=hyperparams['lr'], beta_1=0.9, beta_2=0.999, epsilon=0.0001)
+
 
 #IMPORT DATA
 task = "Depression"
@@ -59,24 +71,14 @@ user_level_data, subjects_split, vocabulary = load_erisk_data(writings_df,
                                                           liwc_categories= categories
                                                            )
 
-
-
-x_data = {'train': [], 'valid': [], 'test': []}
-y_data = {'train': [], 'valid': [], 'test': []}
-for set_type in ['train', 'valid', 'test']:
-    total_positive = 0
-    for x, y in  tqdm(DataGenerator(user_level_data=user_level_data, subjects_split=subjects_split, set_type='train',
+dataGenerator = DataGenerator(user_level_data=user_level_data, subjects_split=subjects_split, set_type='train',
                  batch_size=32, seq_len=512, hyperparams_features=hyperparams_features,
                  post_groups_per_user=None, posts_per_group=10, post_offset = 0,
                  pronouns=["i", "me", "my", "mine", "myself"],
                  compute_liwc=False,
                  max_posts_per_user=None,
-                 shuffle=True, keep_last_batch=True)):
-#         total_positive += pd.Series(y).sum()
-        x_data[set_type].append(x)
-        y_data[set_type].append(y)
-        logger.info("%s %s positive examples\n" % (total_positive, set_type))
+                 shuffle=True, keep_last_batch=True)
 
-print(x_data)
-print(y_data)
+
+
 
