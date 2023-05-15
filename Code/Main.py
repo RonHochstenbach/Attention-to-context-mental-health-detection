@@ -5,7 +5,9 @@ import pickle
 from tqdm import tqdm
 
 from tensorflow.keras import optimizers
+from nltk.corpus import stopwords
 
+from hyperparameters import hyperparams_features, hyperparams
 from resource_loader import load_NRC, readDict
 from data_loader import load_erisk_data
 from auxilliary_functions import tokenize_fields, tokenize_tweets
@@ -16,23 +18,8 @@ from train import initialize_experiment, train
 root_dir = "/Users/ronhochstenbach/Desktop/Thesis/Data"
 
 logger = logging.getLogger('training')
+tf.test.is_gpu_available()
 
-hyperparams_features = {
-    "max_features": 20002,
-    "embedding_dim": 300,
-    "vocabulary_path": root_dir + '/Resources/vocab.pickle',
-    "nrc_lexicon_path" : root_dir + "/Resources/NRC-emotion-lexicon-wordlevel-alphabetized-v0.92.txt",
-    "liwc_path": root_dir + '/Resources/LIWC2007.dic',
-    "stopwords_path": root_dir + '/Resources/stopwords.txt',
-    "embeddings_path": "Resources/glove.840B.300d.txt"#,
-    #"liwc_words_cached": "data/liwc_categories_for_vocabulary_erisk_clpsych_stop_20K.pkl",
-    #"pretrained_model_path": "models/lstm_symanto_hierarchical64"
-}
-
-hyperparams = {
-    "lr" : e-4
-    
-}
 
 hyperparams['optimizer'] = optimizers.Adam(lr=hyperparams['lr'], beta_1=0.9, beta_2=0.999, epsilon=0.0001)
 
@@ -60,9 +47,12 @@ for (w, c) in readDict(root_dir + '/Resources/LIWC2007.dic'):
     liwc_dict[c].append(w)
 
 categories = set(liwc_dict.keys())
+
+stopword_list = stopwords.words("english")
+
 #print(len(categories))
 
-#CREATE VOCABULARY
+#CREATE VOCABULARY, PROCESS DATA, DATAGENERATOR
 user_level_data, subjects_split, vocabulary = load_erisk_data(writings_df,
                                                             voc_size=20002,
                                                            emotion_lexicon=nrc_lexicon,
@@ -71,13 +61,8 @@ user_level_data, subjects_split, vocabulary = load_erisk_data(writings_df,
                                                           liwc_categories= categories
                                                            )
 
-dataGenerator = DataGenerator(user_level_data=user_level_data, subjects_split=subjects_split, set_type='train',
-                 batch_size=32, seq_len=512, hyperparams_features=hyperparams_features,
-                 post_groups_per_user=None, posts_per_group=10, post_offset = 0,
-                 pronouns=["i", "me", "my", "mine", "myself"],
-                 compute_liwc=False,
-                 max_posts_per_user=None,
-                 shuffle=True, keep_last_batch=True)
+
+
 
 
 

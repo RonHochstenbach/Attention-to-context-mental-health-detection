@@ -1,5 +1,5 @@
-from callbacks import FreezeLayer, WeightsHistory,LRHistory
-from tensorflow.keras import callbacks
+from callbacks import FreezeLayer, WeightsHistory, LRHistory
+from keras import callbacks
 from metrics import Metrics
 import logging, sys, os
 import pickle
@@ -13,30 +13,78 @@ os.environ["CUDA_VISIBLE_DEVICES"] = "0" # Note: when starting kernel, for gpu_a
 # only reserve 1 GPU
 os.environ['TF_FORCE_GPU_ALLOW_GROWTH']='true'
 
-def get_network_type(hyperparams):
-    if 'lstm' in hyperparams['ignore_layer']:
-        network_type = 'cnn'
+def initialize_datasets(user_level_data, subjects_split, hyperparams, hyperparams_features,
+                        validation_set, session=None):
+
+    data_generator_train = DataGenerator(user_level_data, subjects_split, set_type='train',
+                                        hyperparams_features=hyperparams_features,
+                                        seq_len=hyperparams['maxlen'], batch_size=hyperparams['batch_size'],
+                                        posts_per_group=hyperparams['posts_per_group'], post_groups_per_user=hyperparams['post_groups_per_user'],
+                                        max_posts_per_user=hyperparams['posts_per_user'],
+                                         compute_liwc=True,
+                                         ablate_emotions='emotions' in hyperparams['ignore_layer'],
+                                         ablate_liwc='liwc' in hyperparams['ignore_layer'])
+
+    data_generator_valid = DataGenerator(user_level_data, subjects_split, set_type=validation_set,
+                                            hyperparams_features=hyperparams_features,
+                                        seq_len=hyperparams['maxlen'], batch_size=hyperparams['batch_size'],
+                                        posts_per_group=hyperparams['posts_per_group'],
+                                         post_groups_per_user=1,
+                                        max_posts_per_user=None,
+                                        shuffle=False,
+                                         compute_liwc=True,
+                                         ablate_emotions='emotions' in hyperparams['ignore_layer'],
+                                         ablate_liwc='liwc' in hyperparams['ignore_layer'])
+
+    return data_generator_train, data_generator_valid
+
+def initialize_model(hyperparams, hyperparams_features,
+                     logger=None, session=None, transfer=False):
+    if not logger:
+        logger = logging.getLogger('training')
+        ch = logging.StreamHandler(sys.stdout)
+        # create formatter
+        formatter = logging.Formatter("%(asctime)s;%(levelname)s;%(message)s")
+        # add formatter to ch
+        ch.setFormatter(formatter)
+        # add ch to logger
+        logger.addHandler(ch)
+        logger.setLevel(logging.DEBUG)
+    logger.info("Initializing model...\n")
+    if 'emotions' in hyperparams['ignore_layer']:
+        emotions_dim = 0
     else:
-        network_type = 'lstm'
-    if 'user_encoded' in hyperparams['ignore_layer']:
-        if 'bert_layer' not in hyperparams['ignore_layer']:
-            network_type = 'bert'
-        else:
-            network_type = 'extfeatures'
-    if hyperparams['hierarchical']:
-        hierarch_type = 'hierarchical'
+        emotions = load_NRC(hyperparams_features['nrc_lexicon_path'])
+        emotions_dim = len(emotions)
+    if 'liwc' in hyperparams['ignore_layer']:
+        liwc_categories_dim = 0
     else:
-        hierarch_type = 'seq'
-    return network_type, hierarch_type
+        liwc_categories = load_LIWC(hyperparams_features['liwc_path'])
+        liwc_categories_dim = len(liwc_categories)
+    if 'stopwords' in hyperparams['ignore_layer']:
+        stopwords_dim = 0
+    else:
+        stopwords_list = load_stopwords(hyperparams_features['stopwords_path'])
+        stopwords_dim = len(stopwords_list)
+
+    # Initialize model
+    model = build_hierarchical_model(hyperparams, hyperparams_features,
+                                     emotions_dim, stopwords_dim, liwc_categories_dim,
+                                     ignore_layer=hyperparams['ignore_layer'])
+
+    model.summary()
+    return model
 
 
 def train_model(model, hyperparams,
                 data_generator_train, data_generator_valid,
                 epochs, class_weight, start_epoch=0, workers=1,
                 callback_list=[], logger=None,
+
                 model_path='/tmp/model',
                 validation_set='valid',
                 verbose=1):
+
     if not logger:
         logger = logging.getLogger('training')
         ch = logging.StreamHandler(sys.stdout)
@@ -89,3 +137,58 @@ def train_model(model, hyperparams,
     return model, history
 
 
+def train(user_level_data, subjects_split,
+          hyperparams, hyperparams_features,
+          experiment, dataset_type, transfer_type, logger=None,
+          validation_set='valid',
+          version=0, epochs=50, start_epoch=0,
+          session=None, model=None, transfer_layer=False):
+    if not logger:
+        logger = logging.getLogger('training')
+        ch = logging.StreamHandler(sys.stdout)
+        # create formatter
+        formatter = logging.Formatter("%(asctime)s;%(levelname)s;%(message)s")
+        # add formatter to ch
+        ch.setFormatter(formatter)
+        # add ch to logger
+        logger.addHandler(ch)
+        logger.setLevel(logging.DEBUG)
+
+        network_type = 'lstm'
+        hierarch_type = 'hierarhical'
+        for feature in ['LIWC', 'emotions', 'numerical_dense_layer', 'sparse_feat_dense_layer', 'user_encoded']:
+            if feature in hyperparams['ignore_layer']:
+                network_type += "no%s" % feature
+
+        model_path = 'models/%s_%s_%s%d' % (network_type, dataset_type, hierarch_type, version)
+
+        logger.info("Initializing datasets...\n")
+        data_generator_train, data_generator_valid = initialize_datasets(user_level_data, subjects_split,
+                                                                         hyperparams, hyperparams_features,
+                                                                         validation_set=validation_set)
+
+        model = initialize_model(hyperparams, hyperparams_features,
+                                    session=session, transfer=transfer_layer)
+
+        print(model_path)
+        logger.info("Training model...\n")
+        model, history = train_model(model, hyperparams,
+                                     data_generator_train, data_generator_valid,
+                                     epochs=epochs, start_epoch=start_epoch,
+                                     class_weight={0: 1, 1: hyperparams['positive_class_weight']},
+                                     callback_list=[
+                                         'weights_history',
+                                         'lr_history',
+                                         'reduce_lr_plateau',
+                                         'lr_schedule'
+                                     ],
+                                     model_path=model_path, workers=1,
+                                     validation_set=validation_set)
+        logger.info("Saving model...\n")
+        try:
+            save_model_and_params(model, model_path, hyperparams, hyperparams_features)
+            experiment.log_parameter("model_path", model_path)
+        except:
+            logger.error("Could not save model.\n")
+
+        return model, history
