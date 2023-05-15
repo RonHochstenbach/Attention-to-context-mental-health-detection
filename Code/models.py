@@ -1,11 +1,11 @@
-from tensorflow.keras.models import Sequential, Model, load_model
-from tensorflow.keras.layers import Dense, Dropout, Embedding, LSTM, Lambda, BatchNormalization, TimeDistributed, \
+from keras.models import Sequential, Model, load_model
+from keras.layers import Dense, Dropout, Embedding, LSTM, Lambda, BatchNormalization, TimeDistributed, \
     Bidirectional, Input, concatenate, Flatten, RepeatVector, Activation, Multiply, Permute, \
     Conv1D, GlobalMaxPooling1D
-from tensorflow.keras import regularizers
-from tensorflow.keras import optimizers
-from tensorflow.keras import backend as K
-from tensorflow.keras.metrics import AUC
+from keras import regularizers
+from keras import optimizers
+from keras import backend as K
+from keras.metrics import AUC
 from metrics import Metrics
 from resource_loader import load_embeddings
 
@@ -15,8 +15,9 @@ def build_hierarchical_model(hyperparams, hyperparams_features,
                              ignore_layer=[]):
     embedding_matrix = load_embeddings(hyperparams_features['embeddings_path'],
                                        hyperparams_features['embedding_dim'],
-                                       hyperparams_features['vocabulary_path'],
-                                       hyperparams_features['max_features'])
+                                       hyperparams_features['vocabulary_path'])
+
+    print(embedding_matrix)
     # Post/sentence representation - word sequence
     tokens_features = Input(shape=(hyperparams['maxlen'],), name='word_seq')
     embedding_layer = Embedding(hyperparams_features['max_features'],

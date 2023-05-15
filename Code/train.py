@@ -115,31 +115,18 @@ def train_model(model, hyperparams,
     logging.info('Train...')
 
     history = model.fit_generator(data_generator_train,
-                                  # steps_per_epoch=100,
                                   epochs=epochs, initial_epoch=start_epoch,
                                   class_weight=class_weight,
                                   validation_data=data_generator_valid,
                                   verbose=verbose,
-                                  #               validation_split=0.3,
                                   workers=workers,
-                                  use_multiprocessing=False,
-                                  # max_queue_size=100,
-
-                                  callbacks=[
-                                                # callbacks.ModelCheckpoint(filepath='%s_best.h5' % model_path, verbose=1,
-                                                #                           save_best_only=True, save_weights_only=True),
-                                                # callbacks.EarlyStopping(patience=hyperparams['early_stopping_patience'],
-                                                #                        restore_best_weights=True)
-                                            ] + [
-                                                callbacks_dict[c] for c in [
-                                          # 'weights_history',
-                                      ]])
+                                  use_multiprocessing=False)
     return model, history
 
 
 def train(user_level_data, subjects_split,
           hyperparams, hyperparams_features,
-          experiment, dataset_type, transfer_type, logger=None,
+          dataset_type, logger=None,
           validation_set='valid',
           version=0, epochs=50, start_epoch=0,
           session=None, model=None, transfer_layer=False):
@@ -155,7 +142,7 @@ def train(user_level_data, subjects_split,
         logger.setLevel(logging.DEBUG)
 
         network_type = 'lstm'
-        hierarch_type = 'hierarhical'
+        hierarch_type = 'hierarchical'
         for feature in ['LIWC', 'emotions', 'numerical_dense_layer', 'sparse_feat_dense_layer', 'user_encoded']:
             if feature in hyperparams['ignore_layer']:
                 network_type += "no%s" % feature
@@ -185,10 +172,5 @@ def train(user_level_data, subjects_split,
                                      model_path=model_path, workers=1,
                                      validation_set=validation_set)
         logger.info("Saving model...\n")
-        try:
-            save_model_and_params(model, model_path, hyperparams, hyperparams_features)
-            experiment.log_parameter("model_path", model_path)
-        except:
-            logger.error("Could not save model.\n")
 
         return model, history
