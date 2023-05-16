@@ -105,6 +105,7 @@ def load_embeddings(path, embedding_dim, vocabulary_path):
         if word_i is not None:
             embedding_matrix[word_i] = coefs
             cnt_inv += 1
+
     f.close()
 
     print('Total %s word vectors.' % len(embedding_matrix))

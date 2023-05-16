@@ -1,5 +1,7 @@
 from nltk.tokenize import TweetTokenizer
 import re
+from collections import Counter
+import pickle
 
 def tokenize_tweets(t, stop=True):
     tweet_tokenizer = TweetTokenizer()
@@ -20,3 +22,29 @@ def tokenize_fields(writings_df, tokenize_fct, columns=['title', 'text']):
                                                                     if type(t)==list and t else None)
     return writings_df
 
+def build_vocabulary(writings_df):
+    # Build vocabulary
+    vocabulary_all = {}
+    word_freqs = Counter()
+
+    for text in writings_df.tokenized_text:
+        word_freqs.update(text)
+
+    if 'tokenized_title' in writings_df.columns:
+        for text in writings_df.tokenized_title:
+            word_freqs.update(text)
+    i = 1
+    print(len(word_freqs))
+    for w, f in word_freqs.most_common(20002 - 2):  # keeping voc_size-1 for unk
+        if len(w) < 1:
+            continue
+        vocabulary_all[w] = i
+        i += 1
+    print(len(vocabulary_all))
+    print("Average number of posts per user", writings_df.groupby('subject').count().title.mean())
+    print("Average number of comments per user", writings_df.groupby('subject').count().text.mean())
+
+    with open("/Users/ronhochstenbach/Desktop/Thesis/Data/Resources/vocabulary.pkl", 'wb') as f:
+        pickle.dump(vocabulary_all, f, protocol=pickle.HIGHEST_PROTOCOL)
+
+    return vocabulary_all

@@ -10,7 +10,7 @@ from tensorflow.keras import optimizers
 
 from hyperparameters import hyperparams_features, hyperparams
 from resource_loader import load_NRC, readDict, load_stopwords
-from data_loader import load_erisk_data
+from data_loader import load_erisk_data, load_erisk_data_TEST
 from auxilliary_functions import tokenize_fields, tokenize_tweets
 from data_generator import DataGenerator
 from models import build_hierarchical_model
@@ -31,27 +31,6 @@ task = "Depression"
 
 writings_df = pd.read_pickle(root_dir +  "/Processed Data/tokenized_df_" + task + ".pkl")
 
-# Build vocabulary
-vocabulary_all = {}
-word_freqs = Counter()
-
-
-for text in writings_df.tokenized_text:
-        word_freqs.update(text)
-
-if 'tokenized_title' in writings_df.columns:
-    for text in writings_df.tokenized_title:
-            word_freqs.update(text)
-i = 1
-print(word_freqs)
-for w, f in word_freqs.most_common(20002 - 2):  # keeping voc_size-1 for unk
-    if len(w) < 1:
-        continue
-    vocabulary_all[w] = i
-    i += 1
-print(len(vocabulary_all))
-print("Average number of posts per user", writings_df.groupby('subject').count().title.mean())
-print("Average number of comments per user", writings_df.groupby('subject').count().text.mean())
 
 #IMPORT RESOURCES
 # nrc_lexicon = load_NRC(hyperparams_features['nrc_lexicon_path'])
@@ -67,10 +46,10 @@ print("Average number of comments per user", writings_df.groupby('subject').coun
 # categories = set(liwc_dict.keys())
 #
 # stopword_list = load_stopwords(root_dir + '/Resources/stopwords.txt')
-#
-# #print(len(categories))
-#
-# #CREATE VOCABULARY, PROCESS DATA, DATAGENERATOR
+
+#print(len(categories))
+
+#CREATE VOCABULARY, PROCESS DATA, DATAGENERATOR
 # user_level_data, subjects_split, vocabulary = load_erisk_data(writings_df,
 #                                                             voc_size=20002,
 #                                                            emotion_lexicon=nrc_lexicon,
@@ -78,15 +57,21 @@ print("Average number of comments per user", writings_df.groupby('subject').coun
 #                                                         logger = logger,
 #                                                           liwc_categories= categories
 #                                                            )
-#
-# models, history = train(user_level_data, subjects_split,
-#           hyperparams=hyperparams, hyperparams_features=hyperparams_features,
-#           dataset_type=task,
-#           validation_set='valid',
-#           version=0, epochs=2, start_epoch=0
-#                                        )
-#
-#
+
+user_level_data, subjects_split, vocabulary = load_erisk_data_TEST(writings_df,
+                                                           hyperparams_features=hyperparams_features,
+                                                                                logger=None,
+                                                              by_subset=True
+                                                                               )
+
+models, history = train(user_level_data, subjects_split,
+          hyperparams=hyperparams, hyperparams_features=hyperparams_features,
+          dataset_type=task,
+          validation_set='valid',
+          version=0, epochs=2, start_epoch=0
+                                       )
+
+
 #
 #
 #

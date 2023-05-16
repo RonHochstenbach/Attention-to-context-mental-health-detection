@@ -3,7 +3,7 @@ root_dir = root_dir = "/Users/ronhochstenbach/Desktop/Thesis/Data"
 hyperparams_features = {
     "max_features": 20002,
     "embedding_dim": 300,
-    "vocabulary_path": root_dir + '/Resources/vocab.pickle',
+    "vocabulary_path": root_dir + '/Resources/vocabulary.pkl',
     "nrc_lexicon_path" : root_dir + "/Resources/NRC-emotion-lexicon-wordlevel-alphabetized-v0.92.txt",
     "liwc_path": root_dir + '/Resources/LIWC2007.dic',
     "stopwords_path": root_dir + '/Resources/stopwords.txt',
