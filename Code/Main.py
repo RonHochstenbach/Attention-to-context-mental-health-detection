@@ -5,16 +5,18 @@ import pickle
 from tqdm import tqdm
 import tensorflow as tf
 from collections import Counter
+import time
 
 from tensorflow.keras import optimizers
 
 from hyperparameters import hyperparams_features, hyperparams
 from resource_loader import load_NRC, readDict, load_stopwords
-from data_loader import load_erisk_data, load_erisk_data_TEST
+from data_loader import load_erisk_data
 from auxilliary_functions import tokenize_fields, tokenize_tweets
 from data_generator import DataGenerator
 from models import build_hierarchical_model
 from train import  train
+from feature_encoders import encode_liwc_categories
 
 root_dir = "/Users/ronhochstenbach/Desktop/Thesis/Data"
 
@@ -31,7 +33,6 @@ task = "Depression"
 
 writings_df = pd.read_pickle(root_dir +  "/Processed Data/tokenized_df_" + task + ".pkl")
 
-
 #IMPORT RESOURCES
 # nrc_lexicon = load_NRC(hyperparams_features['nrc_lexicon_path'])
 # emotions = list(nrc_lexicon.keys())
@@ -42,23 +43,14 @@ writings_df = pd.read_pickle(root_dir +  "/Processed Data/tokenized_df_" + task 
 #     if c not in liwc_dict:
 #         liwc_dict[c] = []
 #     liwc_dict[c].append(w)
-#
-# categories = set(liwc_dict.keys())
+
 #
 # stopword_list = load_stopwords(root_dir + '/Resources/stopwords.txt')
 
 #print(len(categories))
 
 #CREATE VOCABULARY, PROCESS DATA, DATAGENERATOR
-# user_level_data, subjects_split, vocabulary = load_erisk_data(writings_df,
-#                                                             voc_size=20002,
-#                                                            emotion_lexicon=nrc_lexicon,
-#                                                            emotions=emotions,
-#                                                         logger = logger,
-#                                                           liwc_categories= categories
-#                                                            )
-
-user_level_data, subjects_split, vocabulary = load_erisk_data_TEST(writings_df,
+user_level_data, subjects_split, vocabulary = load_erisk_data(writings_df,
                                                            hyperparams_features=hyperparams_features,
                                                                                 logger=None,
                                                               by_subset=True
@@ -72,7 +64,3 @@ models, history = train(user_level_data, subjects_split,
                                        )
 
 
-#
-#
-#
-#

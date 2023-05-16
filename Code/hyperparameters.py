@@ -1,4 +1,4 @@
-root_dir = root_dir = "/Users/ronhochstenbach/Desktop/Thesis/Data"
+root_dir = "/Users/ronhochstenbach/Desktop/Thesis/Data"
 
 hyperparams_features = {
     "max_features": 20002,
@@ -7,7 +7,7 @@ hyperparams_features = {
     "nrc_lexicon_path" : root_dir + "/Resources/NRC-emotion-lexicon-wordlevel-alphabetized-v0.92.txt",
     "liwc_path": root_dir + '/Resources/LIWC2007.dic',
     "stopwords_path": root_dir + '/Resources/stopwords.txt',
-    "embeddings_path": root_dir + "/Resources/glove.840B.300d.txt"#,
+    "embeddings_path": root_dir + "/Resources/glove.840B.300d.txt" #,
     #"liwc_words_cached": "data/liwc_categories_for_vocabulary_erisk_clpsych_stop_20K.pkl"
 }
 
@@ -54,8 +54,8 @@ hyperparams = {
     "positive_class_weight": 2,
 
     "maxlen": 256,
-    "posts_per_user": 0,
-    "post_groups_per_user": 0,
+    "posts_per_user": None,
+    "post_groups_per_user": None,
     "posts_per_group": 50,
     "batch_size": 32,
     "padding": "pre",

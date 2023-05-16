@@ -56,6 +56,8 @@ def encode_liwc_categories_full(tokens, liwc_categories, liwc_words_for_categori
     return categories_cnt
 
 
+
+#NOTE: this implementation differs from uban, to account for word* in liwc_dict
 def encode_liwc_categories(tokens, liwc_categories, liwc_words_for_categories, relative=True):
     categories_cnt = [0 for c in liwc_categories]
     if not tokens:
@@ -63,8 +65,14 @@ def encode_liwc_categories(tokens, liwc_categories, liwc_words_for_categories, r
     text_len = len(tokens)
     for i, category in enumerate(liwc_categories):
         for t in tokens:
-            if t in liwc_words_for_categories[category]:
-                categories_cnt[i] += 1
+            for word in liwc_words_for_categories[category]:
+                if word == t:
+                    categories_cnt[i] += 1
+                elif '*' in word and word[:-1] in t:
+                    categories_cnt[i] += 1
+                else:
+                    continue
+
         if relative and text_len:
             categories_cnt[i] = categories_cnt[i] / text_len
     return categories_cnt

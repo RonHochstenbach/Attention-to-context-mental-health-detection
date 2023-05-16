@@ -2,7 +2,7 @@ from tensorflow.keras.utils import Sequence
 import numpy as np
 import pickle
 import re
-from tensorflow.keras.preprocessing import sequence
+from keras.preprocessing import sequence
 from resource_loader import load_NRC, load_LIWC, load_vocabulary, load_stopwords
 from feature_encoders import encode_emotions, encode_pronouns, encode_stopwords, encode_liwc_categories
 
@@ -125,7 +125,7 @@ class DataGenerator(Sequence):
         if not self.compute_liwc:
             encoded_liwc = None
         else:
-            encoded_liwc = encode_liwc_categories(tokens, self.liwc_categories, self.liwc_words_for_categories)
+            encoded_liwc = encode_liwc_categories(tokens, self.liwc_categories, self.liwc_dict)
 
         return (encoded_tokens, encoded_emotions, encoded_pronouns, encoded_stopwords, encoded_liwc,
                 )
