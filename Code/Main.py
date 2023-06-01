@@ -12,7 +12,7 @@ from tensorflow.keras import optimizers
 from hyperparameters import hyperparams_features, hyperparams
 from resource_loader import load_NRC, readDict, load_stopwords
 from data_loader import load_erisk_data
-from auxilliary_functions import tokenize_fields, tokenize_tweets
+from auxilliary_functions import tokenize_fields, tokenize_tweets, build_vocabulary
 from data_generator import DataGenerator
 from models import build_hierarchical_model
 from train import  train
@@ -23,7 +23,7 @@ root_dir = "/Users/ronhochstenbach/Desktop/Thesis/Data"
 logger = logging.getLogger('training')
 tf.config.list_physical_devices('GPU')
 
-hyperparams['optimizer'] = optimizers.Adam(lr=hyperparams['lr'], beta_1=0.9, beta_2=0.999, epsilon=0.0001)
+hyperparams['optimizer'] = optimizers.legacy.Adam(learning_rate=hyperparams['lr'], beta_1=0.9, beta_2=0.999, epsilon=0.0001)
 
 #IMPORT DATA
 task = "Depression"
@@ -43,7 +43,6 @@ writings_df = pd.read_pickle(root_dir +  "/Processed Data/tokenized_df_" + task 
 #     if c not in liwc_dict:
 #         liwc_dict[c] = []
 #     liwc_dict[c].append(w)
-
 #
 # stopword_list = load_stopwords(root_dir + '/Resources/stopwords.txt')
 
@@ -55,6 +54,7 @@ user_level_data, subjects_split, vocabulary = load_erisk_data(writings_df,
                                                                                 logger=None,
                                                               by_subset=True
                                                                                )
+
 
 models, history = train(user_level_data, subjects_split,
           hyperparams=hyperparams, hyperparams_features=hyperparams_features,

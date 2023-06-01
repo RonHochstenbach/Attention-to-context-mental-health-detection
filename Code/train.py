@@ -6,6 +6,7 @@ import pickle
 from data_generator import DataGenerator
 from models import build_hierarchical_model
 from resource_loader import load_NRC, load_LIWC, load_stopwords
+import tensorflow as tf
 
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
 # os.environ['CUDA_VISIBLE_DEVICES'] = '-1' # When cudnn implementation not found, run this
@@ -112,9 +113,9 @@ def train_model(model, hyperparams,
                       'reduce_lr_plateau': reduce_lr,
                       'lr_schedule': lr_schedule}
 
-    logging.info('Train...')
+    logging.info('Train...\n')
 
-    history = model.fit_generator(data_generator_train,
+    history = model.fit(data_generator_train,
                                   epochs=epochs, initial_epoch=start_epoch,
                                   class_weight=class_weight,
                                   validation_data=data_generator_valid,

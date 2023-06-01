@@ -20,7 +20,7 @@ def build_hierarchical_model(hyperparams, hyperparams_features,
 
     # Post/sentence representation - word sequence
     tokens_features = Input(shape=(hyperparams['maxlen'],), name='word_seq')
-    embedding_layer = Embedding(hyperparams_features['max_features']-1,
+    embedding_layer = Embedding(hyperparams_features['max_features'],
                                 hyperparams_features['embedding_dim'],
                                 input_length=hyperparams['maxlen'],
                                 embeddings_regularizer=regularizers.l2(hyperparams['l2_embeddings']),
@@ -53,6 +53,7 @@ def build_hierarchical_model(hyperparams, hyperparams_features,
     if 'batchnorm' not in ignore_layer:
         sent_representation = BatchNormalization(axis=1, momentum=hyperparams['norm_momentum'],
                                                  name='sent_repr_norm')(sent_representation)
+
     sent_representation = Dropout(hyperparams['dropout'], name='sent_repr_dropout')(sent_representation)
 
     # Other features
@@ -71,7 +72,7 @@ def build_hierarchical_model(hyperparams, hyperparams_features,
 
     # Hierarchy
     sentEncoder = Model(inputs=tokens_features,
-                        outputs=sent_representation)
+                        outputs=sent_representation, name='sentEncoder')
     sentEncoder.summary()
 
     user_encoder = TimeDistributed(sentEncoder, name='user_encoder')(posts_history_input)
@@ -90,12 +91,16 @@ def build_hierarchical_model(hyperparams, hyperparams_features,
     dense_layer_numerical_user = TimeDistributed(dense_layer_numerical,
                                                  name='numerical_dense_layer_user')(numerical_features_history)
 
+    # DIT GAAT FOUT, WANT ALS UIT GECOMMENT, DOET IE HET. axis=1 lijkt te gaan over de
     # Concatenate features
     if 'batchnorm' not in ignore_layer:
-        dense_layer_numerical_user = BatchNormalization(axis=1, momentum=hyperparams['norm_momentum'],
+        dense_layer_numerical_user = BatchNormalization(axis=2, momentum=hyperparams['norm_momentum'],
                                                         name='numerical_features_norm')(dense_layer_numerical_user)
-        dense_layer_sparse_user = BatchNormalization(axis=1, momentum=hyperparams['norm_momentum'],
+
+        dense_layer_sparse_user = BatchNormalization(axis=2, momentum=hyperparams['norm_momentum'],
                                                      name='sparse_features_norm')(dense_layer_sparse_user)
+
+
     all_layers = {
         'user_encoded': user_encoder,
 

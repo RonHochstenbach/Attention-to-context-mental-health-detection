@@ -43,6 +43,7 @@ def load_erisk_data(writings_df, hyperparams_features, by_subset=True,
     #     logger.debug("Loading data...\n")
 
     vocabulary = load_vocabulary(hyperparams_features['vocabulary_path'])
+    print(len(vocabulary))
     voc_size = hyperparams_features['max_features']
     emotion_lexicon = load_NRC(hyperparams_features['nrc_lexicon_path'])
     emotions = list(emotion_lexicon.keys())

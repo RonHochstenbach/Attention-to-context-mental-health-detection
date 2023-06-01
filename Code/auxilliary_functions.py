@@ -3,6 +3,8 @@ import re
 from collections import Counter
 import pickle
 
+from hyperparameters import hyperparams_features
+
 def tokenize_tweets(t, stop=True):
     tweet_tokenizer = TweetTokenizer()
     tokens = tweet_tokenizer.tokenize(t.lower())
@@ -35,11 +37,15 @@ def build_vocabulary(writings_df):
             word_freqs.update(text)
     i = 1
     print(len(word_freqs))
-    for w, f in word_freqs.most_common(20002 - 2):  # keeping voc_size-1 for unk
-        if len(w) < 1:
-            continue
-        vocabulary_all[w] = i
-        i += 1
+    for w, f in word_freqs.most_common(hyperparams_features['max_features'] + 1000): #add some space for len<1 words
+        if len(vocabulary_all) < hyperparams_features['max_features'] - 2:  # keeping voc_size-1 for unk
+            if len(w) < 1:
+                continue
+            vocabulary_all[w] = i
+            i += 1
+        else:
+            break
+
     print(len(vocabulary_all))
     print("Average number of posts per user", writings_df.groupby('subject').count().title.mean())
     print("Average number of comments per user", writings_df.groupby('subject').count().text.mean())
