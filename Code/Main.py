@@ -21,7 +21,14 @@ from feature_encoders import encode_liwc_categories
 root_dir = "/Users/ronhochstenbach/Desktop/Thesis/Data"
 
 logger = logging.getLogger('training')
-tf.config.list_physical_devices('GPU')
+
+if not tf.config.list_physical_devices('GPU'):
+    print(tf.config.list_physical_devices())
+    raise Exception("NO GPU DETECTED")
+else:
+    print("GPU found!")
+
+
 
 hyperparams['optimizer'] = optimizers.legacy.Adam(learning_rate=hyperparams['lr'], beta_1=0.9, beta_2=0.999, epsilon=0.0001)
 
