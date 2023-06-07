@@ -1,8 +1,8 @@
-from tensorflow.keras.utils import Sequence
+from keras.utils import Sequence
 import numpy as np
 import pickle
 import re
-from keras.preprocessing import sequence
+from keras.utils import pad_sequences
 from resource_loader import load_NRC, load_LIWC, load_vocabulary, load_stopwords
 from feature_encoders import encode_emotions, encode_pronouns, encode_stopwords, encode_liwc_categories
 
@@ -224,7 +224,7 @@ class DataGenerator(Sequence):
                     sparse_data.append(encoded_stopwords)
 
                 # For each range
-                tokens_data_padded = np.array(sequence.pad_sequences(tokens_data, maxlen=self.seq_len,
+                tokens_data_padded = np.array(pad_sequences(tokens_data, maxlen=self.seq_len,
                                                                      padding=self.padding,
                                                                      truncating=self.padding))
                 user_tokens.append(tokens_data_padded)
@@ -235,16 +235,16 @@ class DataGenerator(Sequence):
                 labels.append(label)
                 subjects.append(subject)
 
-        user_tokens = sequence.pad_sequences(user_tokens,
+        user_tokens = pad_sequences(user_tokens,
                                              maxlen=self.posts_per_group,
                                              value=self.pad_value)
         user_tokens = np.rollaxis(np.dstack(user_tokens), -1)
-        user_categ_data = sequence.pad_sequences(user_categ_data,
+        user_categ_data = pad_sequences(user_categ_data,
                                                  maxlen=self.posts_per_group,
                                                  value=self.pad_value, dtype='float32')
         user_categ_data = np.rollaxis(np.dstack(user_categ_data), -1)
 
-        user_sparse_data = sequence.pad_sequences(user_sparse_data,
+        user_sparse_data = pad_sequences(user_sparse_data,
                                                   maxlen=self.posts_per_group,
                                                   value=self.pad_value)
         user_sparse_data = np.rollaxis(np.dstack(user_sparse_data), -1)

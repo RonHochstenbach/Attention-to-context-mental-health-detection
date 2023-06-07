@@ -1,4 +1,5 @@
 import pandas as pd
+import os
 import logging
 import csv
 import pickle
@@ -26,9 +27,10 @@ if not tf.config.list_physical_devices('GPU'):
     print(tf.config.list_physical_devices())
     raise Exception("NO GPU DETECTED")
 else:
+    os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
+    os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+    os.environ['TF_FORCE_GPU_ALLOW_GROWTH'] = 'true'
     print("GPU found!")
-
-
 
 hyperparams['optimizer'] = optimizers.legacy.Adam(learning_rate=hyperparams['lr'], beta_1=0.9, beta_2=0.999, epsilon=0.0001)
 
@@ -40,20 +42,7 @@ task = "Depression"
 
 writings_df = pd.read_pickle(root_dir +  "/Processed Data/tokenized_df_" + task + ".pkl")
 
-#IMPORT RESOURCES
-# nrc_lexicon = load_NRC(hyperparams_features['nrc_lexicon_path'])
-# emotions = list(nrc_lexicon.keys())
-# #print(emotions)
-#
-# liwc_dict = {}
-# for (w, c) in readDict(root_dir + '/Resources/LIWC2007.dic'):
-#     if c not in liwc_dict:
-#         liwc_dict[c] = []
-#     liwc_dict[c].append(w)
-#
-# stopword_list = load_stopwords(root_dir + '/Resources/stopwords.txt')
 
-#print(len(categories))
 
 #CREATE VOCABULARY, PROCESS DATA, DATAGENERATOR
 user_level_data, subjects_split, vocabulary = load_erisk_data(writings_df,
@@ -61,13 +50,22 @@ user_level_data, subjects_split, vocabulary = load_erisk_data(writings_df,
                                                                                 logger=None,
                                                               by_subset=True
                                                                                )
+print(f"there are {len(user_level_data)} subjects")
+print(user_level_data.keys())
+print(user_level_data['subject18280000'].keys())
 
 
-models, history = train(user_level_data, subjects_split,
-          hyperparams=hyperparams, hyperparams_features=hyperparams_features,
-          dataset_type=task,
-          validation_set='valid',
-          version=0, epochs=2, start_epoch=0
-                                       )
+print(f"There are {len(subjects_split['train'])}  train subjects")
+print(f"There are {len(subjects_split['test'])}  test subjects")
+
+
+# with tf.device('GPU:0' if tf.config.list_physical_devices('GPU') else 'CPU:0'):
+#     print(f"Training on {'GPU:0' if tf.config.list_physical_devices('GPU') else 'CPU:0'}!")
+#     models, history = train(user_level_data, subjects_split,
+#           hyperparams=hyperparams, hyperparams_features=hyperparams_features,
+#           dataset_type=task,
+#           validation_set='valid',
+#           version=0, epochs=2, start_epoch=0
+#                                        )
 
 

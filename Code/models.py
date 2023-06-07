@@ -91,7 +91,7 @@ def build_hierarchical_model(hyperparams, hyperparams_features,
     dense_layer_numerical_user = TimeDistributed(dense_layer_numerical,
                                                  name='numerical_dense_layer_user')(numerical_features_history)
 
-    # DIT GAAT FOUT, WANT ALS UIT GECOMMENT, DOET IE HET. axis=1 lijkt te gaan over de
+
     # Concatenate features
     if 'batchnorm' not in ignore_layer:
         dense_layer_numerical_user = BatchNormalization(axis=2, momentum=hyperparams['norm_momentum'],
