@@ -90,12 +90,8 @@ def load_erisk_data(writings_df, hyperparams_features, by_subset=True,
     liwc_dict = load_LIWC(hyperparams_features['liwc_path'])
     liwc_categories = set(liwc_dict.keys())
 
-    print(len(writings_df['subject'].unique()))
     training_subjects = list(set(writings_df[writings_df['subset'] == 'train'].subject))
     test_subjects = list(set(writings_df[writings_df['subset'] == 'test'].subject))
-    print(f"Train: {len(training_subjects)}")
-    print(f"Test: {len(test_subjects)}")
-
 
     training_subjects = sorted(training_subjects)  # ensuring reproducibility
     valid_subjects_size = int(len(training_subjects) * valid_prop)
@@ -142,7 +138,7 @@ def load_erisk_data(writings_df, hyperparams_features, by_subset=True,
     return user_level_texts, subjects_split, vocabulary
 
 #save datasets
-task = "Depression"
-load_data(task).to_pickle("/Users/ronhochstenbach/Desktop/Thesis/Data/Processed Data/df_" + task + ".pkl")
+# task = "Depression"
+# load_data(task).to_pickle("/Users/ronhochstenbach/Desktop/Thesis/Data/Processed Data/df_" + task + ".pkl")
 
 

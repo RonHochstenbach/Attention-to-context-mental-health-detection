@@ -7,6 +7,8 @@ from data_generator import DataGenerator
 from models import build_hierarchical_model
 from resource_loader import load_NRC, load_LIWC, load_stopwords
 import tensorflow as tf
+from load_save_model import save_model_and_params
+from datetime import datetime
 
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
 # os.environ['CUDA_VISIBLE_DEVICES'] = '-1' # When cudnn implementation not found, run this
@@ -122,12 +124,14 @@ def train_model(model, hyperparams,
                                   verbose=verbose,
                                   workers=workers,
                                   use_multiprocessing=False)
+
     return model, history
 
 
 def train(user_level_data, subjects_split,
           hyperparams, hyperparams_features,
-          dataset_type, logger=None,
+          dataset_type, save,
+          logger=None,
           validation_set='valid',
           version=0, epochs=50, start_epoch=0,
           session=None, model=None, transfer_layer=False):
@@ -172,6 +176,10 @@ def train(user_level_data, subjects_split,
                                      ],
                                      model_path=model_path, workers=1,
                                      validation_set=validation_set)
-        logger.info("Saving model...\n")
+
+        if save:
+            logger.info("Saving model...\n")
+            store_path = dataset_type + ' ' + datetime.now()
+            save_model_and_params(model, store_path, hyperparams, hyperparams_features)
 
         return model, history
