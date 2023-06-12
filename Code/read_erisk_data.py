@@ -9,7 +9,6 @@ def read_subject_writings(subject_file):
     with open(subject_file) as file:
         contents = file.read()
         root = ET.fromstring(contents)
-
         try:
             subject = root.findall('ID')[0].text.strip()
         except Exception:
@@ -43,13 +42,14 @@ def read_texts_2019(datadir_root_T1_2019,
                              for chunkdir in os.listdir(subdir)]
             else:
                 chunkdirs = [os.path.join(datadir_root_T1_2019[subset], subdir)]
-
+            print(chunkdirs)
             for chunkdir in chunkdirs:
                 #print(chunkdir)
                 if not os.path.isdir(chunkdir):
-                    print(chunkdir + " is not a directory")
+                    #print(chunkdir + " is not a directory")
                     continue
                 for subject_file in os.listdir(chunkdir):
+                    print(os.path.join(chunkdir, subject_file))
                     writings[subset].extend(read_subject_writings(os.path.join(chunkdir, subject_file)))
         writings_df_part = pd.DataFrame(writings[subset])
         # add a suffix for users in the test -- the numbers are duplicated with the ones in train

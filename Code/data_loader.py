@@ -10,7 +10,7 @@ def load_data(task):
 
     if task == "Depression":
         datadirs_T1_2018 = {
-            'train': ['train/positive_examples_anonymous_chunks/', 'train/positive_examples_anonymous_chunks/',
+            'train': ['train/positive_examples_anonymous_chunks/', 'train/negative_examples_anonymous_chunks/',
                       'test/'],
             'test': ['task 1 - depression (test split, train split is 2017 data)/']
         }
@@ -83,15 +83,19 @@ def load_erisk_data(writings_df, hyperparams_features, by_subset=True,
     #     logger.debug("Loading data...\n")
 
     vocabulary = load_vocabulary(hyperparams_features['vocabulary_path'])
-    print(len(vocabulary))
+    #print(len(vocabulary))
     voc_size = hyperparams_features['max_features']
     emotion_lexicon = load_NRC(hyperparams_features['nrc_lexicon_path'])
     emotions = list(emotion_lexicon.keys())
     liwc_dict = load_LIWC(hyperparams_features['liwc_path'])
     liwc_categories = set(liwc_dict.keys())
 
+    print(len(writings_df['subject'].unique()))
     training_subjects = list(set(writings_df[writings_df['subset'] == 'train'].subject))
     test_subjects = list(set(writings_df[writings_df['subset'] == 'test'].subject))
+    print(f"Train: {len(training_subjects)}")
+    print(f"Test: {len(test_subjects)}")
+
 
     training_subjects = sorted(training_subjects)  # ensuring reproducibility
     valid_subjects_size = int(len(training_subjects) * valid_prop)
@@ -138,7 +142,7 @@ def load_erisk_data(writings_df, hyperparams_features, by_subset=True,
     return user_level_texts, subjects_split, vocabulary
 
 #save datasets
-task = "Self-Harm"
+task = "Depression"
 load_data(task).to_pickle("/Users/ronhochstenbach/Desktop/Thesis/Data/Processed Data/df_" + task + ".pkl")
 
 

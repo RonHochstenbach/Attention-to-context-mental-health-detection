@@ -15,13 +15,13 @@ test_2018["Subjects"] = []
 test_2018["Labels"] = []
 test_2018["writings"] = []
 
-with open('/Users/ronhochstenbach/Desktop/Thesis/Data/Raw Data/2017/test/writings_all_test_users.txt', 'r')  as file:
+with open('/Users/ronhochstenbach/Desktop/Thesis/Data/Raw Data/2017/test/writings_all_test_users.txt', 'r') as file:
     for l in file:
         if len(l.split())>0:
             test_2017["Subjects"].append(l.split()[0][-4:])
             test_2017["writings"].append(l.split()[1])
 
-with open('/Users/ronhochstenbach/Desktop/Thesis/Data/Raw Data/2017/test/test_golden_truth.txt', 'r')  as file:
+with open('/Users/ronhochstenbach/Desktop/Thesis/Data/Raw Data/2017/test/test_golden_truth.txt', 'r') as file:
     for l in file:
         if len(l.split())>0:
             test_2017["Labels"].append(l.split()[1])
