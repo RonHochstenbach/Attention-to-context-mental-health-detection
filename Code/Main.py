@@ -35,10 +35,10 @@ else:
 hyperparams['optimizer'] = optimizers.legacy.Adam(learning_rate=hyperparams['lr'], beta_1=0.9, beta_2=0.999, epsilon=0.0001)
 
 #IMPORT DATA
-task = "Depression"
-# writings_df = pd.read_pickle(root_dir +  "/Processed Data/df_" + task + ".pkl")
-# writings_df = tokenize_fields(writings_df, tokenize_fct=tokenize_tweets, columns=['text', 'title'])
-# writings_df.to_pickle("/Users/ronhochstenbach/Desktop/Thesis/Data/Processed Data/tokenized_df_" + task + ".pkl")
+task = "Self-Harm"
+writings_df = pd.read_pickle(root_dir +  "/Processed Data/df_" + task + ".pkl")
+writings_df = tokenize_fields(writings_df, tokenize_fct=tokenize_tweets, columns=['text', 'title'])
+writings_df.to_pickle("/Users/ronhochstenbach/Desktop/Thesis/Data/Processed Data/tokenized_df_" + task + ".pkl")
 
 writings_df = pd.read_pickle(root_dir +  "/Processed Data/tokenized_df_" + task + ".pkl")
 
@@ -51,9 +51,6 @@ user_level_data, subjects_split, vocabulary = load_erisk_data(writings_df,
                                                               by_subset=True
                                                                                )
 print(f"there are {len(user_level_data)} subjects")
-print(user_level_data.keys())
-print(user_level_data['subject18280000'].keys())
-
 
 print(f"There are {len(subjects_split['train'])}  train subjects")
 print(f"There are {len(subjects_split['test'])}  test subjects")

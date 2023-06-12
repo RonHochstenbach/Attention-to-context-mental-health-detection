@@ -3,7 +3,7 @@ from collections import Counter
 
 
 from resource_loader import load_vocabulary, load_NRC, load_LIWC
-from read_erisk_data import read_texts_2019, read_subject_writings
+from read_erisk_data import read_texts_2019, read_subject_writings, read_texts_2020
 
 def load_data(task):
     root_dir = '/Users/ronhochstenbach/Desktop/Thesis/Data/Raw Data'
@@ -29,7 +29,47 @@ def load_data(task):
                    labels_files_T1_2018,
                    chunked_subsets=['train', 'test'])
 
+    elif task == "Anorexia":
+        datadirs_T1_2019 = {
+            'train': ['2018 test/', '2018 train/positive_examples/', '2018 train/negative_examples/'],
+            'test': ['data/']
+        }
+        datadir_root_T1_2019 = {
+            'train': root_dir + '/eRisk2019_T1/training data - t1/',
+            'test': root_dir + '/eRisk2019_T1/test data - T1/'
+        }
 
+        labels_files_T1_2019 = {
+            'train': ['2018 train/risk_golden_truth.txt', '2018 test/risk-golden-truth-test.txt'],
+            'test': ['T1_erisk_golden_truth.txt']
+        }
+
+        writings_df = read_texts_2019(datadir_root_T1_2019,
+                        datadirs_T1_2019,
+                        labels_files_T1_2019)
+
+    elif task == "Self-Harm":
+
+        datadirs_T1_2020 = {
+            'train': ['./data/'],
+            'test': ['./DATA/']
+        }
+        datadir_root_T1_2020 = {
+            'train': root_dir + '/eRISK2020_training_data/',
+            'test': root_dir + '/T1/'
+        }
+
+        labels_files_T1_2020 = {
+            'train': ['golden_truth.txt'],
+            'test': ['T1_erisk_golden_truth.txt']
+        }
+
+        writings_df = read_texts_2020(datadir_root_T1_2020,
+                                      datadirs_T1_2020,
+                                      labels_files_T1_2020)
+
+    else:
+        raise Exception("Unknown task!")
 
     return writings_df
 
@@ -98,5 +138,7 @@ def load_erisk_data(writings_df, hyperparams_features, by_subset=True,
     return user_level_texts, subjects_split, vocabulary
 
 #save datasets
-# task = "Depression"
-# load_data(task).to_pickle("/Users/ronhochstenbach/Desktop/Thesis/Data/Processed Data/df_" + task + ".pkl")
+task = "Self-Harm"
+load_data(task).to_pickle("/Users/ronhochstenbach/Desktop/Thesis/Data/Processed Data/df_" + task + ".pkl")
+
+
