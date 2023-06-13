@@ -1,5 +1,6 @@
 from keras import callbacks
-
+import logging
+from keras import backend as K
 
 class WeightsHistory(callbacks.Callback):
     def __init__(self, logs={}):
@@ -32,7 +33,7 @@ class LRHistory(callbacks.Callback):
 
     def log_lr(self):
         lr = K.eval(self.model.optimizer.lr)
-        logger.debug("Learning rate is %f...\n" % lr)
+        #logger.debug("Learning rate is %f...\n" % lr)
 
 
 class FreezeLayer(callbacks.Callback):

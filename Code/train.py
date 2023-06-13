@@ -7,8 +7,7 @@ from data_generator import DataGenerator
 from models import build_hierarchical_model
 from resource_loader import load_NRC, load_LIWC, load_stopwords
 import tensorflow as tf
-from load_save_model import save_model_and_params
-from datetime import datetime
+import multiprocessing
 
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
 # os.environ['CUDA_VISIBLE_DEVICES'] = '-1' # When cudnn implementation not found, run this
@@ -16,6 +15,7 @@ os.environ["CUDA_VISIBLE_DEVICES"] = "0" # Note: when starting kernel, for gpu_a
 # only reserve 1 GPU
 os.environ['TF_FORCE_GPU_ALLOW_GROWTH']='true'
 
+root_dir = "/Users/ronhochstenbach/Desktop/Thesis"
 def initialize_datasets(user_level_data, subjects_split, hyperparams, hyperparams_features,
                         validation_set, session=None):
 
@@ -40,6 +40,7 @@ def initialize_datasets(user_level_data, subjects_split, hyperparams, hyperparam
                                          ablate_liwc='liwc' in hyperparams['ignore_layer'])
 
     return data_generator_train, data_generator_valid
+
 
 def initialize_model(hyperparams, hyperparams_features,
                      logger=None, session=None, transfer=False):
@@ -81,7 +82,7 @@ def initialize_model(hyperparams, hyperparams_features,
 
 def train_model(model, hyperparams,
                 data_generator_train, data_generator_valid,
-                epochs, class_weight, start_epoch=0, workers=1,
+                epochs, class_weight, start_epoch=0, workers=multiprocessing.cpu_count(),
                 callback_list=[], logger=None,
 
                 model_path='/tmp/model',
@@ -110,8 +111,9 @@ def train_model(model, hyperparams,
     lr_schedule = callbacks.LearningRateScheduler(lambda epoch, lr:
                                                   lr if (epoch + 1) % hyperparams['scheduled_reduce_lr_freq'] != 0 else
                                                   lr * hyperparams['scheduled_reduce_lr_factor'], verbose=1)
-    callbacks_dict = {'freeze_layer': freeze_layer, 'weights_history': weights_history,
+    callbacks_dict = {'weights_history': weights_history,
                       'lr_history': lr_history,
+                      #'freeze_layer': freeze_layer,
                       'reduce_lr_plateau': reduce_lr,
                       'lr_schedule': lr_schedule}
 
@@ -123,6 +125,7 @@ def train_model(model, hyperparams,
                                   validation_data=data_generator_valid,
                                   verbose=verbose,
                                   workers=workers,
+                                  callbacks=callbacks_dict,
                                   use_multiprocessing=False)
 
     return model, history
@@ -177,9 +180,5 @@ def train(user_level_data, subjects_split,
                                      model_path=model_path, workers=1,
                                      validation_set=validation_set)
 
-        if save:
-            logger.info("Saving model...\n")
-            store_path = dataset_type + ' ' + datetime.now()
-            save_model_and_params(model, store_path, hyperparams, hyperparams_features)
 
         return model, history

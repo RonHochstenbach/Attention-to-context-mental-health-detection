@@ -1,4 +1,5 @@
-from tensorflow.keras import backend as K
+from keras import backend as K
+import tensorflow as tf
 
 class Metrics():
     def __init__(self, threshold=0.5):
@@ -25,9 +26,9 @@ class Metrics():
         recall = self.recall_m(y_true, y_pred)
         return 2 * ((precision * recall) / (precision + recall + K.epsilon()))
 
-    def auc2(self, y_true, y_pred):
-        auc = tf.metrics.auc(y_true, y_pred)[1]
-        return auc
+    # def auc2(self, y_true, y_pred):
+    #     auc = tf.metrics.auc(y_true, y_pred)[1]
+    #     return auc
 
 
 def binary_crossentropy_custom(y_true, y_pred):

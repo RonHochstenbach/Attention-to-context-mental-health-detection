@@ -1,5 +1,5 @@
 root_dir = "/Users/ronhochstenbach/Desktop/Thesis/Data"
-
+import json
 hyperparams_features = {
     "max_features": 20002,
     "embedding_dim": 300,
@@ -51,7 +51,7 @@ hyperparams = {
     "threshold": 0.5,
     "early_stopping_patience": 5,
 
-    "positive_class_weight": 2,
+    "positive_class_weight": 5,
 
     "maxlen": 256,
     "posts_per_user": None,
@@ -63,3 +63,6 @@ hyperparams = {
     "sample_seqs": False,
     "sampling_distr": "exp",
 }
+
+# with open('/Users/ronhochstenbach/Desktop/Thesis/Data/Resources/config.json', 'w') as file:
+#     json.dump(hyperparams_features, file)

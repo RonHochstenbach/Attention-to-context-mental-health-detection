@@ -3,6 +3,7 @@ import json
 from keras.models import load_model
 from keras import optimizers
 from train import initialize_model
+
 def save_model_and_params(model, model_path, hyperparams, hyperparams_features):
     model.save_weights(model_path + "_weights.h5", save_format='h5')
     with open(model_path + '.hp.json', 'w+') as hpf:
@@ -10,7 +11,7 @@ def save_model_and_params(model, model_path, hyperparams, hyperparams_features):
     with open(model_path + '.hpf.json', 'w+') as hpff:
         hpff.write(json.dumps(hyperparams_features))
 
-def load_params(model_path, general_config_path='config.json'):
+def load_params(model_path, general_config_path='/Users/ronhochstenbach/Desktop/Thesis/Data/Resources/config.json'):
     with open(model_path + '.hp.json', 'r') as hpf:
         hyperparams = json.loads(hpf.read())
     with open(model_path + '.hpf.json', 'r') as hpff:
@@ -20,7 +21,7 @@ def load_params(model_path, general_config_path='config.json'):
     for k in config:
         if k not in hyperparams_features:
             hyperparams_features[k] = config[k]
-    hyperparams['optimizer'] = optimizers.Adam(lr=hyperparams['lr'], #beta_1=0.9, beta_2=0.999, epsilon=0.0001,
+    hyperparams['optimizer'] = optimizers.Adam(learning_rate=hyperparams['lr'], #beta_1=0.9, beta_2=0.999, epsilon=0.0001,
                                    decay=hyperparams['decay'])
     return hyperparams, hyperparams_features
 
