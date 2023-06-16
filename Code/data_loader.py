@@ -73,14 +73,15 @@ def load_data(task):
 
     return writings_df
 
-def load_erisk_data(writings_df, hyperparams_features, by_subset=True,
+def load_erisk_data(writings_df, hyperparams_features, train_prop, by_subset=True,
                     pronouns=["i", "me", "my", "mine", "myself"],
-                    train_prop=0.7, valid_prop=0.3, test_slice=2,
+                    test_slice=2,
                     nr_slices=5,
                     min_post_len=3, min_word_len=1,
                     user_level=True, labelcol='label', label_index=None,
                     logger=None):
     #     logger.debug("Loading data...\n")
+    valid_prop = 1 - train_prop
 
     vocabulary = load_vocabulary(hyperparams_features['vocabulary_path'])
     #print(len(vocabulary))
@@ -98,10 +99,7 @@ def load_erisk_data(writings_df, hyperparams_features, by_subset=True,
     valid_subjects = training_subjects[:valid_subjects_size]
     training_subjects = training_subjects[valid_subjects_size:]
     categories = [c for c in liwc_categories if c in writings_df.columns]
-    #     logger.debug("%d training users, %d validation users, %d test users." % (
-    #         len(training_subjects),
-    #           len(valid_subjects),
-    #           len(test_subjects)))
+
     subjects_split = {'train': training_subjects,
                       'valid': valid_subjects,
                       'test': test_subjects}

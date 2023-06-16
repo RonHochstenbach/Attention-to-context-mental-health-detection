@@ -133,7 +133,7 @@ def train_model(model, hyperparams,
 
 def train(user_level_data, subjects_split,
           hyperparams, hyperparams_features,
-          dataset_type, save,
+          dataset_type,
           logger=None,
           validation_set='valid',
           version=0, epochs=50, start_epoch=0,

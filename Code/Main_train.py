@@ -38,11 +38,10 @@ else:
 hyperparams['optimizer'] = optimizers.legacy.Adam(learning_rate=hyperparams['lr'], beta_1=0.9, beta_2=0.999, epsilon=0.0001)
 
 #IMPORT DATA
-task = "Self-Harm"
+task = "Anorexia"
 print(f"Running {task} task!")
 
 save = True
-
 if save:
     print("Model will be saved!")
 else:
@@ -55,14 +54,12 @@ else:
 writings_df = pd.read_pickle(root_dir +  "/Processed Data/tokenized_df_" + task + ".pkl")
 
 #CREATE VOCABULARY, PROCESS DATA, DATAGENERATOR
-user_level_data, subjects_split, vocabulary = load_erisk_data(writings_df,
+user_level_data, subjects_split, vocabulary = load_erisk_data(writings_df,train_prop= 0.99,
                                                            hyperparams_features=hyperparams_features,
                                                                                 logger=None,
                                                               by_subset=True
                                                                                )
 print(f"There are {len(user_level_data)} subjects, of which {len(subjects_split['train'])} train and {len(subjects_split['test'])} test.")
-
-
 
 with tf.device('GPU:0' if tf.config.list_physical_devices('GPU') else 'CPU:0'):
     print(f"Training on {'GPU:0' if tf.config.list_physical_devices('GPU') else 'CPU:0'}!")
@@ -71,9 +68,9 @@ with tf.device('GPU:0' if tf.config.list_physical_devices('GPU') else 'CPU:0'):
           hyperparams=hyperparams, hyperparams_features=hyperparams_features,
           dataset_type=task,
           validation_set='valid',
-          version=0, epochs=25, start_epoch=0)
+          version=0, epochs=15, start_epoch=0)
 
     if save:
         logger.info("Saving model...\n")
-        store_path = root_dir + '/Data/Saved Models/' + task + ' ' + str(datetime.now())
+        store_path = root_dir + '/Saved Models/' + task + ' ' + str(datetime.now())
         save_model_and_params(model, store_path, hyperparams, hyperparams_features)

@@ -43,15 +43,15 @@ hyperparams = {
 
     "decay": 0.001,
     "lr": 0.00005,
-    "reduce_lr_factor": 0.5,
-    "reduce_lr_patience": 55,
-    "scheduled_reduce_lr_freq": 95,
+    "reduce_lr_factor": 0.8, #originally 0.5
+    "reduce_lr_patience": 5,    #originally 55
+    "scheduled_reduce_lr_freq": 5, #originally: 95
     "scheduled_reduce_lr_factor": 0.5,
     "freeze_patience": 2000,
     "threshold": 0.5,
     "early_stopping_patience": 5,
 
-    "positive_class_weight": 5,
+    "positive_class_weight": 2.5,     #originally: 1
 
     "maxlen": 256,
     "posts_per_user": None,
