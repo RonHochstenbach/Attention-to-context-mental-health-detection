@@ -16,6 +16,8 @@ def tokenize_tweets(t, stop=True):
                         if (token not in sw)]
     return tokens_clean
 
+
+
 def tokenize_fields(writings_df, tokenize_fct, columns=['title', 'text']):
     for c in columns:
         writings_df['tokenized_%s' % c] = writings_df['%s' % c].apply(lambda t: tokenize_fct(t)

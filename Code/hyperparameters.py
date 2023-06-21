@@ -1,5 +1,5 @@
-#root_dir = "/Users/ronhochstenbach/Desktop/Thesis/Data"
-root_dir = "/content/drive/MyDrive/Thesis/Data"  #when cloning for colab
+root_dir = "/Users/ronhochstenbach/Desktop/Thesis/Data"
+#root_dir = "/content/drive/MyDrive/Thesis/Data"  #when cloning for colab
 
 import json
 hyperparams_features = {
@@ -44,7 +44,7 @@ hyperparams = {
                     ],
 
     "decay": 0.001,
-    "lr": 0.0001,
+    "lr": 0.0001,               #appendix uban
     "reduce_lr_factor": 0.8, #originally 0.5
     "reduce_lr_patience": 5,    #originally 55
     "scheduled_reduce_lr_freq": 5, #originally: 95
@@ -53,7 +53,7 @@ hyperparams = {
     "threshold": 0.5,
     "early_stopping_patience": 5,
 
-    "positive_class_weight": 2.5,     #originally: 1
+    "positive_class_weight": 2,     #github history https://github.com/ananana/mental-disorders/commit/8a7f12d470ede3c850eb344c6e53fd660ea32908
 
     "maxlen": 256,
     "posts_per_user": None,

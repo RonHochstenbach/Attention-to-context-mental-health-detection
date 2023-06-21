@@ -4,9 +4,10 @@ from metrics import Metrics
 import logging, sys, os
 import pickle
 from data_generator import DataGenerator
-from models import build_hierarchical_model
+from models import build_HAN, build_HAN_BERT
 from resource_loader import load_NRC, load_LIWC, load_stopwords
 import tensorflow as tf
+import keras
 import multiprocessing
 
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
@@ -42,7 +43,7 @@ def initialize_datasets(user_level_data, subjects_split, hyperparams, hyperparam
     return data_generator_train, data_generator_valid
 
 
-def initialize_model(hyperparams, hyperparams_features,
+def initialize_model(hyperparams, hyperparams_features, model_type,
                      logger=None, session=None, transfer=False):
     if not logger:
         logger = logging.getLogger('training')
@@ -72,15 +73,19 @@ def initialize_model(hyperparams, hyperparams_features,
         stopwords_dim = len(stopwords_list)
 
     # Initialize model
-    model = build_hierarchical_model(hyperparams, hyperparams_features,
-                                     emotions_dim, stopwords_dim, liwc_categories_dim,
-                                     ignore_layer=hyperparams['ignore_layer'])
+
+    if model_type == 'HAN':
+        model = build_HAN(hyperparams, hyperparams_features,
+                                         emotions_dim, stopwords_dim, liwc_categories_dim,
+                                         ignore_layer=hyperparams['ignore_layer'])
+    else:
+        model = build_HAN_BERT
 
     model.summary()
     return model
 
 
-def train_model(model, hyperparams,
+def train_model(model, hyperparams, save, store_path,
                 data_generator_train, data_generator_valid,
                 epochs, class_weight, start_epoch=0, workers=multiprocessing.cpu_count(),
                 callback_list=[], logger=None,
@@ -111,11 +116,16 @@ def train_model(model, hyperparams,
     lr_schedule = callbacks.LearningRateScheduler(lambda epoch, lr:
                                                   lr if (epoch + 1) % hyperparams['scheduled_reduce_lr_freq'] != 0 else
                                                   lr * hyperparams['scheduled_reduce_lr_factor'], verbose=1)
-    callbacks_dict = {'weights_history': weights_history,
-                      'lr_history': lr_history,
-                      #'freeze_layer': freeze_layer,
-                      'reduce_lr_plateau': reduce_lr,
-                      'lr_schedule': lr_schedule}
+    callbacks_dict = {}
+
+    # callbacks_dict = {'weights_history': weights_history,
+    #                   'lr_history': lr_history,
+    #                   #'freeze_layer': freeze_layer,
+    #                   'reduce_lr_plateau': reduce_lr,
+    #                   'lr_schedule': lr_schedule}
+
+    if save:
+        callbacks_dict['csv_logger'] = keras.callbacks.CSVLogger(store_path + 'metricHistory.csv',separator=",",append=True)
 
     logging.info('Train...\n')
 
@@ -125,15 +135,16 @@ def train_model(model, hyperparams,
                                   validation_data=data_generator_valid,
                                   verbose=verbose,
                                   workers=workers,
-                                  callbacks=callbacks_dict,
+                                  callbacks=callbacks_dict.values(),
                                   use_multiprocessing=False)
 
     return model, history
 
 
-def train(user_level_data, subjects_split,
+def train(user_level_data, subjects_split, save, store_path,
           hyperparams, hyperparams_features,
           dataset_type,
+          model_type,
           logger=None,
           validation_set='valid',
           version=0, epochs=50, start_epoch=0,
@@ -162,21 +173,16 @@ def train(user_level_data, subjects_split,
                                                                          hyperparams, hyperparams_features,
                                                                          validation_set=validation_set)
 
-        model = initialize_model(hyperparams, hyperparams_features,
+        model = initialize_model(hyperparams, hyperparams_features, model_type,
                                     session=session, transfer=transfer_layer)
 
         print(model_path)
         logger.info("Training model...\n")
-        model, history = train_model(model, hyperparams,
+
+        model, history = train_model(model, hyperparams, save, store_path,
                                      data_generator_train, data_generator_valid,
                                      epochs=epochs, start_epoch=start_epoch,
                                      class_weight={0: 1, 1: hyperparams['positive_class_weight']},
-                                     # callback_list=[
-                                     #     'weights_history',
-                                     #     'lr_history',
-                                     #     'reduce_lr_plateau',
-                                     #     'lr_schedule'
-                                     # ],
                                      model_path=model_path, workers=1,
                                      validation_set=validation_set)
         return model, history
