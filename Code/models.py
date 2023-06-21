@@ -6,9 +6,10 @@ from keras.layers import Dense, Dropout, Embedding, LSTM, Lambda, BatchNormaliza
 from keras import regularizers
 from keras import optimizers
 from keras import backend as K
-from keras.metrics import AUC
+from keras.metrics import AUC, Precision, Recall
 from metrics import Metrics
 from resource_loader import load_embeddings
+from sklearn.metrics import precision_score, recall_score, f1_score
 
 #print(tf.__version__)
 def build_hierarchical_model(hyperparams, hyperparams_features,
@@ -154,7 +155,7 @@ def build_hierarchical_model(hyperparams, hyperparams_features,
     metrics_class = Metrics(threshold=hyperparams['threshold'])
     hierarchical_model.compile(hyperparams['optimizer'], K.binary_crossentropy,
                                metrics=[metrics_class.precision_m, metrics_class.recall_m,
-                                        metrics_class.f1_m, AUC()])
+                                        metrics_class.f1_m, AUC(), Precision(), Recall()])
 
     return hierarchical_model
 

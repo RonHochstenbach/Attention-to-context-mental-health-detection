@@ -171,14 +171,12 @@ def train(user_level_data, subjects_split,
                                      data_generator_train, data_generator_valid,
                                      epochs=epochs, start_epoch=start_epoch,
                                      class_weight={0: 1, 1: hyperparams['positive_class_weight']},
-                                     callback_list=[
-                                         'weights_history',
-                                         'lr_history',
-                                         'reduce_lr_plateau',
-                                         'lr_schedule'
-                                     ],
+                                     # callback_list=[
+                                     #     'weights_history',
+                                     #     'lr_history',
+                                     #     'reduce_lr_plateau',
+                                     #     'lr_schedule'
+                                     # ],
                                      model_path=model_path, workers=1,
                                      validation_set=validation_set)
-
-
         return model, history

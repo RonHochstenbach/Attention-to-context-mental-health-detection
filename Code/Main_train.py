@@ -35,10 +35,10 @@ else:
     os.environ['TF_FORCE_GPU_ALLOW_GROWTH'] = 'true'
     print("GPU found!")
 
-hyperparams['optimizer'] = optimizers.legacy.Adam(learning_rate=hyperparams['lr'], beta_1=0.9, beta_2=0.999, epsilon=0.0001)
+hyperparams['optimizer'] = optimizers.legacy.Adam(learning_rate=hyperparams['lr'], beta_1=0.9, beta_2=0.999, epsilon=0.001)
 
 #IMPORT DATA
-task = "Anorexia"
+task = "Self-Harm"
 print(f"Running {task} task!")
 
 save = True
@@ -54,7 +54,7 @@ else:
 writings_df = pd.read_pickle(root_dir +  "/Processed Data/tokenized_df_" + task + ".pkl")
 
 #CREATE VOCABULARY, PROCESS DATA, DATAGENERATOR
-user_level_data, subjects_split, vocabulary = load_erisk_data(writings_df,train_prop= 0.99,
+user_level_data, subjects_split, vocabulary = load_erisk_data(writings_df,train_prop= 0.7,
                                                            hyperparams_features=hyperparams_features,
                                                                                 logger=None,
                                                               by_subset=True

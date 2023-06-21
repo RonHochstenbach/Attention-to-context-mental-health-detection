@@ -1,5 +1,6 @@
-#root_dir = "/Users/ronhochstenbach/Desktop/Thesis/Data"
-root_dir = "/content/drive/MyDrive/Thesis/Data"  #when cloning for colab
+root_dir = "/Users/ronhochstenbach/Desktop/Thesis/Data"
+#root_dir = "/content/drive/MyDrive/Thesis/Data"  #when cloning for colab
+
 import json
 hyperparams_features = {
     "max_features": 20002,
@@ -33,17 +34,17 @@ hyperparams = {
 
     "transfer_units": 20,
 
-    "dropout": 0.1,
-    "l2_dense": 0.00011,
-    "l2_embeddings": 0.0000001,
-    "l2_bert": 0.0001,
+    "dropout": 0.3,             #Appendix uban
+    "l2_dense": 0.00001,        #Appendix uban (?)
+    "l2_embeddings": 0.00001,   #Appendix uban (?)
+    "l2_bert": 0.00001,         #Appendix uban (?)
     "norm_momentum": 0.1,
 
     "ignore_layer": ["bert_layer"
                     ],
 
     "decay": 0.001,
-    "lr": 0.00005,
+    "lr": 0.0001,
     "reduce_lr_factor": 0.8, #originally 0.5
     "reduce_lr_patience": 5,    #originally 55
     "scheduled_reduce_lr_freq": 5, #originally: 95
