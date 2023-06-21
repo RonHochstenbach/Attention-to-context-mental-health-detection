@@ -1,5 +1,5 @@
-root_dir = "/Users/ronhochstenbach/Desktop/Thesis/Data"
-#root_dir = "/content/drive/MyDrive/Thesis/Data"  #when cloning for colab
+#root_dir = "/Users/ronhochstenbach/Desktop/Thesis/Data"
+root_dir = "/content/drive/MyDrive/Thesis/Data"  #when cloning for colab
 
 import json
 hyperparams_features = {
