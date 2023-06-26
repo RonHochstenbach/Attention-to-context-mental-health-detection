@@ -35,14 +35,14 @@ def load_saved_model(model_path, hyperparams):
     loaded_model = load_model(model_path + "_model.h5", custom_objects=dependencies)
     return loaded_model
 
-def load_saved_model_weights(model_path, hyperparams, hyperparams_features, h5=False):
+def load_saved_model_weights(model_path, hyperparams, hyperparams_features, model_type, h5=False):
     metrics_class = Metrics(threshold=hyperparams['threshold'])
     dependencies = {
     'f1_m': metrics_class.f1_m,
     'precision_m': metrics_class.precision_m,
     'recall_m': metrics_class.recall_m,
     }
-    loaded_model = initialize_model(hyperparams, hyperparams_features)
+    loaded_model = initialize_model(hyperparams, hyperparams_features, model_type)
     loaded_model.summary()
     path = model_path + "_weights"
     by_name = False

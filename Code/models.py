@@ -9,7 +9,8 @@ from keras import backend as K
 from keras.metrics import AUC, Precision, Recall
 from metrics import Metrics
 from resource_loader import load_embeddings
-from sklearn.metrics import precision_score, recall_score, f1_score
+from transformers import TFBertModel
+
 
 #print(tf.__version__)
 def build_HAN(hyperparams, hyperparams_features,
@@ -162,20 +163,16 @@ def build_HAN(hyperparams, hyperparams_features,
 def build_HAN_BERT(hyperparams, hyperparams_features,
                              emotions_dim, stopwords_list_dim, liwc_categories_dim,
                              ignore_layer=[]):
-    embedding_matrix = load_embeddings(hyperparams_features['embeddings_path'],
-                                       hyperparams_features['embedding_dim'],
-                                       hyperparams_features['vocabulary_path'])
 
     # Post/sentence representation - word sequence
-    tokens_features = Input(shape=(hyperparams['maxlen'],), name='word_seq')
-    embedding_layer = Embedding(hyperparams_features['max_features'],
-                                hyperparams_features['embedding_dim'],
-                                input_length=hyperparams['maxlen'],
-                                embeddings_regularizer=regularizers.l2(hyperparams['l2_embeddings']),
-                                weights=[embedding_matrix],
-                                trainable=hyperparams['trainable_embeddings'],
-                                name='embeddings_layer')(
-        tokens_features)
+    tokens_features_ids = Input(shape=(hyperparams['maxlen'],), name='word_seq_ids',dtype=tf.int32)
+    tokens_features_attnmasks = Input(shape=(hyperparams['maxlen'],), name='word_seq_attnmasks',dtype=tf.int32)
+
+    #extracting the last four hidden states and summing them
+    embedding_layer = TFBertModel.from_pretrained('bert-base-uncased')(tokens_features_ids,
+                                                                       attention_mask=tokens_features_attnmasks, output_hidden_states=True)[2][-4:]
+    embedding_layer = tf.reduce_sum(embedding_layer, axis=0)(embedding_layer)
+
     embedding_layer = Dropout(hyperparams['dropout'], name='embedding_dropout')(embedding_layer)
 
     lstm_layers = LSTM(hyperparams['lstm_units'],
@@ -214,16 +211,19 @@ def build_HAN_BERT(hyperparams, hyperparams_features,
         stopwords_list_dim
     ), name='sparse_input_hist')  # stopwords
 
-    posts_history_input = Input(shape=(hyperparams['posts_per_group'],
+    post_history_ids = Input(shape=(hyperparams['posts_per_group'],
                                        hyperparams['maxlen']
-                                       ), name='hierarchical_word_seq_input')
+                                       ), name='hierarchical_word_seq_input_ids')
+    post_history_attnmasks = Input(shape=(hyperparams['posts_per_group'],
+                                       hyperparams['maxlen']
+                                       ), name='hierarchical_word_seq_input_attnmasks')
 
     # Hierarchy
-    sentEncoder = Model(inputs=tokens_features,
+    sentEncoder = Model(inputs=[tokens_features_ids,tokens_features_attnmasks],
                         outputs=sent_representation, name='sentEncoder')
     sentEncoder.summary()
 
-    user_encoder = TimeDistributed(sentEncoder, name='user_encoder')(posts_history_input)
+    user_encoder = TimeDistributed(sentEncoder, name='user_encoder')([post_history_ids, post_history_attnmasks])
 
     dense_layer_sparse = Dense(units=hyperparams['dense_bow_units'],
                                name='sparse_feat_dense_layer', activation='relu',
@@ -294,7 +294,7 @@ def build_HAN_BERT(hyperparams, hyperparams_features,
                          kernel_regularizer=regularizers.l2(hyperparams['l2_dense'])
                          )(user_representation)
 
-    hierarchical_model = Model(inputs=[posts_history_input,
+    hierarchical_model = Model(inputs=[post_history_ids, post_history_attnmasks,
                                        numerical_features_history, sparse_features_history,
                                        ],
                                outputs=output_layer)

@@ -5,16 +5,17 @@ from data_generator import DataGenerator
 from data_loader import load_erisk_data
 
 root_dir = "/Users/ronhochstenbach/Desktop/Thesis/Data"
-saved_path = root_dir + '/Saved Models/Anorexia 2023-06-16 08:45:04.496728'
+saved_path = root_dir + '/Saved Models/Self-Harm_HAN_2023-06-21 23:08:16.405602'
 
 hyperparams, hyperparams_features = load_params(saved_path)
 
-task = "Self-Harm"
-print(f"Running {task} task!")
+task = "Self-Harm"          #"Self-Harm" - "Anorexia" - "Depression"
+model_type = "HAN"          #"HAN" - "HAN_BERT"
+print(f"Running {task} task using the {model_type} model!")
 
 #IMPORT DATA AND CREATE DATAGENERATOR
 writings_df = pd.read_pickle(root_dir + "/Processed Data/tokenized_df_" + task + ".pkl")
-
+print(writings_df.columns)
 #CREATE VOCABULARY, PROCESS DATA, DATAGENERATOR
 user_level_data, subjects_split, vocabulary = load_erisk_data(writings_df,train_prop= 0.95,
                                                            hyperparams_features=hyperparams_features,
@@ -34,7 +35,7 @@ data_generator_test = DataGenerator(user_level_data, subjects_split, set_type='t
                                      ablate_liwc='liwc' in hyperparams['ignore_layer'])
 
 #LOAD MODEL AND EVALUATE
-model = load_saved_model_weights(saved_path, hyperparams, hyperparams_features, h5=True)
+model = load_saved_model_weights(saved_path, hyperparams, hyperparams_features, model_type, h5=True)
 
 model.evaluate(data_generator_test)
 

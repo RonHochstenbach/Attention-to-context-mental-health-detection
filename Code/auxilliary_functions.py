@@ -1,9 +1,11 @@
+import pandas as pd
 from nltk.tokenize import TweetTokenizer
 import re
 from collections import Counter
 import pickle
+from transformers import BertTokenizer
 
-from hyperparameters import hyperparams_features
+from hyperparameters import hyperparams_features, hyperparams
 
 def tokenize_tweets(t, stop=True):
     tweet_tokenizer = TweetTokenizer()
@@ -19,11 +21,46 @@ def tokenize_tweets(t, stop=True):
 
 
 def tokenize_fields(writings_df, tokenize_fct, columns=['title', 'text']):
+    cnt = 0
     for c in columns:
         writings_df['tokenized_%s' % c] = writings_df['%s' % c].apply(lambda t: tokenize_fct(t)
                                                                 if type(t)==str and t else None)
+
         writings_df['%s_len' % c] = writings_df['tokenized_%s' % c].apply(lambda t: len(t)
                                                                     if type(t)==list and t else None)
+
+    return writings_df
+
+def shorten_text(text, length):
+    if isinstance(text, str) and len(text.split()) > length:
+        print(f"shortened a string which was length {len(text.split())} Now it is length {len(' '.join(text.split()[:length]).split())}")
+        print(' '.join(text.split()[:length]))
+        return ' '.join(text.split()[:length])
+    else:
+        return text
+
+def tokenize_fields_bert(writings_df, columns=['title', 'text']):
+    cnt = 0
+    tokenizer = BertTokenizer.from_pretrained('bert-base-uncased', do_lower_case=True)
+    for c in columns:
+        print('Tokenizing ids for %s' % c)
+        writings_df['tokenized_%s_id' % c] = writings_df['%s' % c].apply(lambda t: tokenizer(t,
+                                                                            add_special_tokens=True, max_length=hyperparams['maxlen'],
+                                                                            padding='max_length', truncation=True,
+                                                                            return_attention_mask=True,
+                                                                            return_tensors='tf')['input_ids']
+                                                                if type(t)==str and t else None)
+        print('Tokenizing attention masks for %s' % c)
+        writings_df['tokenized_%s_attnmask' % c] = writings_df['%s' % c].apply(lambda t: tokenizer(t,
+                                                                            add_special_tokens=True, max_length=hyperparams['maxlen'],
+                                                                            padding='max_length', truncation=True,
+                                                                            return_attention_mask=True,
+                                                                            return_tensors='tf')['attention_mask']
+                                                                if type(t)==str and t else None)
+        print('Appending lengths for %s' % c)
+        writings_df['%s_len' % c] = writings_df['tokenized_%s_id' % c].apply(lambda t: len(t)
+                                                                if type(t)==list and t else None)
+
     return writings_df
 
 def build_vocabulary(writings_df):
