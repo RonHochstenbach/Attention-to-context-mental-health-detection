@@ -5,9 +5,11 @@ import re
 from keras.utils import pad_sequences
 from resource_loader import load_NRC, load_LIWC, load_vocabulary, load_stopwords
 from feature_encoders import encode_emotions, encode_pronouns, encode_stopwords, encode_liwc_categories
+from transformers import BertTokenizerFast
+from hyperparameters import hyperparams_features, hyperparams
+import time
 
-
-class DataGenerator(Sequence):
+class DataGenerator_Base(Sequence):
     'Generates data for Keras'
 
     def __init__(self, user_level_data, subjects_split, set_type,
@@ -208,6 +210,7 @@ class DataGenerator(Sequence):
                 words = all_words[i]
 
                 for p, posting in enumerate(words):
+                    start = time.time()
                     encoded_tokens, encoded_emotions, encoded_pronouns, encoded_stopwords, encoded_liwc, \
                         = self.__encode_text__(words[p], raw_text[p])
                     if 'liwc' in self.data[subject] and not self.compute_liwc:
@@ -222,6 +225,8 @@ class DataGenerator(Sequence):
 
                     categ_data.append(encoded_emotions + [encoded_pronouns] + liwc)
                     sparse_data.append(encoded_stopwords)
+
+                    print(f"elapsed time for encoding: {time.time()-start}")
 
                 # For each range
                 tokens_data_padded = np.array(pad_sequences(tokens_data, maxlen=self.seq_len,
@@ -367,8 +372,15 @@ class DataGenerator_BERT(Sequence):
         self.item_weights = []
 
     def __encode_text__(self, tokens, raw_text):
-        # Using voc_size-1 value for OOV token
-        encoded_tokens = [self.vocabulary.get(w, self.voc_size - 1) for w in tokens]
+        tokenizer = BertTokenizerFast.from_pretrained('bert-base-uncased', do_lower_case=True)
+
+        encodings = tokenizer(tokens, add_special_tokens=True, max_length=hyperparams['maxlen'],
+                                    padding='max_length', truncation=True,
+                                    return_attention_mask=True, is_split_into_words=True,
+                                    return_tensors='tf'
+                              )
+        encoded_token_ids = encodings['input_ids']
+        encoded_token_attnmasks = encodings['attention_mask']
         encoded_emotions = encode_emotions(tokens, self.emotion_lexicon, self.emotions)
         encoded_pronouns = encode_pronouns(tokens, self.pronouns)
         encoded_stopwords = encode_stopwords(tokens, self.stopwords_list)
@@ -377,7 +389,7 @@ class DataGenerator_BERT(Sequence):
         else:
             encoded_liwc = encode_liwc_categories(tokens, self.liwc_categories, self.liwc_dict)
 
-        return (encoded_tokens, encoded_emotions, encoded_pronouns, encoded_stopwords, encoded_liwc,
+        return (encoded_token_ids, encoded_token_attnmasks, encoded_emotions, encoded_pronouns, encoded_stopwords, encoded_liwc,
                 )
 
     def __len__(self):
@@ -420,7 +432,8 @@ class DataGenerator_BERT(Sequence):
 
     def __data_generation_hierarchical__(self, users, post_indexes):
         'Generates data containing batch_size samples'  # X : (n_samples, *dim, n_channels)
-        user_tokens = []
+        user_token_ids = []
+        user_token_attnmasks = []
         user_categ_data = []
         user_sparse_data = []
 
@@ -450,7 +463,8 @@ class DataGenerator_BERT(Sequence):
                 all_raw_texts.append(raw_texts)
 
             for i, words in enumerate(all_words):
-                tokens_data = []
+                tokens_ids_data = []
+                tokens_attnmasks_data = []
                 categ_data = []
                 sparse_data = []
 
@@ -458,7 +472,7 @@ class DataGenerator_BERT(Sequence):
                 words = all_words[i]
 
                 for p, posting in enumerate(words):
-                    encoded_tokens, encoded_emotions, encoded_pronouns, encoded_stopwords, encoded_liwc, \
+                    encoded_token_ids, encoded_token_attnmasks, encoded_emotions, encoded_pronouns, encoded_stopwords, encoded_liwc, \
                         = self.__encode_text__(words[p], raw_text[p])
                     if 'liwc' in self.data[subject] and not self.compute_liwc:
                         liwc = liwc_scores[i][p]
@@ -468,16 +482,15 @@ class DataGenerator_BERT(Sequence):
                         subject_id = int(re.findall('[0-9]+', subject)[0])
                     except IndexError:
                         subject_id = subject
-                    tokens_data.append(encoded_tokens)
+                    tokens_ids_data.append(encoded_token_ids)
+                    tokens_attnmasks_data.append(encoded_token_attnmasks)
 
                     categ_data.append(encoded_emotions + [encoded_pronouns] + liwc)
                     sparse_data.append(encoded_stopwords)
 
                 # For each range
-                tokens_data_padded = np.array(pad_sequences(tokens_data, maxlen=self.seq_len,
-                                                                     padding=self.padding,
-                                                                     truncating=self.padding))
-                user_tokens.append(tokens_data_padded)
+                user_token_ids.append(tokens_ids_data)
+                user_token_attnmasks.append(tokens_attnmasks_data)
 
                 user_categ_data.append(categ_data)
                 user_sparse_data.append(sparse_data)
@@ -485,13 +498,20 @@ class DataGenerator_BERT(Sequence):
                 labels.append(label)
                 subjects.append(subject)
 
-        user_tokens = pad_sequences(user_tokens,
+        user_token_ids = pad_sequences(user_token_ids,
                                              maxlen=self.posts_per_group,
                                              value=self.pad_value)
-        user_tokens = np.rollaxis(np.dstack(user_tokens), -1)
+        user_token_attnmasks = pad_sequences(user_token_attnmasks,
+                                             maxlen=self.posts_per_group,
+                                             value=self.pad_value)
+
+        user_token_ids = np.rollaxis(np.dstack(user_token_ids), -1)
+        user_token_attnmasks = np.rollaxis(np.dstack(user_token_attnmasks), -1)
+
         user_categ_data = pad_sequences(user_categ_data,
                                                  maxlen=self.posts_per_group,
                                                  value=self.pad_value, dtype='float32')
+
         user_categ_data = np.rollaxis(np.dstack(user_categ_data), -1)
 
         user_sparse_data = pad_sequences(user_sparse_data,
@@ -503,6 +523,6 @@ class DataGenerator_BERT(Sequence):
 
         labels = np.array(labels, dtype=np.float32)
 
-        return ((user_tokens, user_categ_data, user_sparse_data),
+        return ((user_token_ids, user_token_attnmasks, user_categ_data, user_sparse_data),
                 np.array(subjects),
                 labels)

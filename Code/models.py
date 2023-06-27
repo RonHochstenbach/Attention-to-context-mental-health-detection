@@ -169,9 +169,10 @@ def build_HAN_BERT(hyperparams, hyperparams_features,
     tokens_features_attnmasks = Input(shape=(hyperparams['maxlen'],), name='word_seq_attnmasks',dtype=tf.int32)
 
     #extracting the last four hidden states and summing them
-    embedding_layer = TFBertModel.from_pretrained('bert-base-uncased')(tokens_features_ids,
-                                                                       attention_mask=tokens_features_attnmasks, output_hidden_states=True)[2][-4:]
-    embedding_layer = tf.reduce_sum(embedding_layer, axis=0)(embedding_layer)
+    BERT_embedding_layer = TFBertModel.from_pretrained('bert-base-uncased')(tokens_features_ids, attention_mask=tokens_features_attnmasks,
+                                                                            output_hidden_states=True)[2][-4:]
+
+    embedding_layer = Lambda(lambda x: tf.keras.backend.sum(x, axis=0))(BERT_embedding_layer)
 
     embedding_layer = Dropout(hyperparams['dropout'], name='embedding_dropout')(embedding_layer)
 
@@ -221,6 +222,10 @@ def build_HAN_BERT(hyperparams, hyperparams_features,
     # Hierarchy
     sentEncoder = Model(inputs=[tokens_features_ids,tokens_features_attnmasks],
                         outputs=sent_representation, name='sentEncoder')
+
+    #Set BERT model to non-trainable
+    [setattr(layer, 'trainable', False) for layer in sentEncoder.layers if layer._name == 'tf_bert_model']
+
     sentEncoder.summary()
 
     user_encoder = TimeDistributed(sentEncoder, name='user_encoder')([post_history_ids, post_history_attnmasks])
@@ -294,17 +299,17 @@ def build_HAN_BERT(hyperparams, hyperparams_features,
                          kernel_regularizer=regularizers.l2(hyperparams['l2_dense'])
                          )(user_representation)
 
-    hierarchical_model = Model(inputs=[post_history_ids, post_history_attnmasks,
+    hierarchical_model_BERT = Model(inputs=[post_history_ids, post_history_attnmasks,
                                        numerical_features_history, sparse_features_history,
                                        ],
                                outputs=output_layer)
 
     metrics_class = Metrics(threshold=hyperparams['threshold'])
-    hierarchical_model.compile(hyperparams['optimizer'], K.binary_crossentropy,
+    hierarchical_model_BERT.compile(hyperparams['optimizer'], K.binary_crossentropy,
                                metrics=[metrics_class.precision_m, metrics_class.recall_m,
                                         metrics_class.f1_m, AUC(), Precision(), Recall()])
 
-    return hierarchical_model
+    return hierarchical_model_BERT
 
 
 

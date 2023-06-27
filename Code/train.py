@@ -3,12 +3,13 @@ from keras import callbacks
 from metrics import Metrics
 import logging, sys, os
 import pickle
-from data_generator import DataGenerator
+from data_generator import DataGenerator_Base, DataGenerator_BERT
 from models import build_HAN, build_HAN_BERT
 from resource_loader import load_NRC, load_LIWC, load_stopwords
 import tensorflow as tf
 import keras
 import multiprocessing
+import time
 
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
 # os.environ['CUDA_VISIBLE_DEVICES'] = '-1' # When cudnn implementation not found, run this
@@ -17,28 +18,54 @@ os.environ["CUDA_VISIBLE_DEVICES"] = "0" # Note: when starting kernel, for gpu_a
 os.environ['TF_FORCE_GPU_ALLOW_GROWTH']='true'
 
 root_dir = "/Users/ronhochstenbach/Desktop/Thesis"
-def initialize_datasets(user_level_data, subjects_split, hyperparams, hyperparams_features,
+def initialize_datasets(user_level_data, subjects_split, hyperparams, hyperparams_features, tokenization_method,
                         validation_set, session=None):
 
-    data_generator_train = DataGenerator(user_level_data, subjects_split, set_type='train',
-                                        hyperparams_features=hyperparams_features,
-                                        seq_len=hyperparams['maxlen'], batch_size=hyperparams['batch_size'],
-                                        posts_per_group=hyperparams['posts_per_group'], post_groups_per_user=hyperparams['post_groups_per_user'],
-                                        max_posts_per_user=hyperparams['posts_per_user'],
-                                         compute_liwc=True,
-                                         ablate_emotions='emotions' in hyperparams['ignore_layer'],
-                                         ablate_liwc='liwc' in hyperparams['ignore_layer'])
-
-    data_generator_valid = DataGenerator(user_level_data, subjects_split, set_type=validation_set,
+    if tokenization_method == "tok_base":
+        data_generator_train = DataGenerator_Base(user_level_data, subjects_split, set_type='train',
                                             hyperparams_features=hyperparams_features,
-                                        seq_len=hyperparams['maxlen'], batch_size=hyperparams['batch_size'],
-                                        posts_per_group=hyperparams['posts_per_group'],
-                                         post_groups_per_user=1,
-                                        max_posts_per_user=None,
-                                        shuffle=False,
-                                         compute_liwc=True,
-                                         ablate_emotions='emotions' in hyperparams['ignore_layer'],
-                                         ablate_liwc='liwc' in hyperparams['ignore_layer'])
+                                            seq_len=hyperparams['maxlen'], batch_size=hyperparams['batch_size'],
+                                            posts_per_group=hyperparams['posts_per_group'], post_groups_per_user=hyperparams['post_groups_per_user'],
+                                            max_posts_per_user=hyperparams['posts_per_user'],
+                                             compute_liwc=True,
+                                             ablate_emotions='emotions' in hyperparams['ignore_layer'],
+                                             ablate_liwc='liwc' in hyperparams['ignore_layer'])
+
+        data_generator_valid = DataGenerator_Base(user_level_data, subjects_split, set_type=validation_set,
+                                                hyperparams_features=hyperparams_features,
+                                            seq_len=hyperparams['maxlen'], batch_size=hyperparams['batch_size'],
+                                            posts_per_group=hyperparams['posts_per_group'],
+                                             post_groups_per_user=1,
+                                            max_posts_per_user=None,
+                                            shuffle=False,
+                                             compute_liwc=True,
+                                             ablate_emotions='emotions' in hyperparams['ignore_layer'],
+                                             ablate_liwc='liwc' in hyperparams['ignore_layer'])
+
+    elif tokenization_method == "tok_Bert":
+        data_generator_train = DataGenerator_BERT(user_level_data, subjects_split, set_type='train',
+                                                  hyperparams_features=hyperparams_features,
+                                                  seq_len=hyperparams['maxlen'], batch_size=hyperparams['batch_size'],
+                                                  posts_per_group=hyperparams['posts_per_group'],
+                                                  post_groups_per_user=hyperparams['post_groups_per_user'],
+                                                  max_posts_per_user=hyperparams['posts_per_user'],
+                                                  compute_liwc=True,
+                                                  ablate_emotions='emotions' in hyperparams['ignore_layer'],
+                                                  ablate_liwc='liwc' in hyperparams['ignore_layer'])
+
+        data_generator_valid = DataGenerator_BERT(user_level_data, subjects_split, set_type=validation_set,
+                                                  hyperparams_features=hyperparams_features,
+                                                  seq_len=hyperparams['maxlen'], batch_size=hyperparams['batch_size'],
+                                                  posts_per_group=hyperparams['posts_per_group'],
+                                                  post_groups_per_user=1,
+                                                  max_posts_per_user=None,
+                                                  shuffle=False,
+                                                  compute_liwc=True,
+                                                  ablate_emotions='emotions' in hyperparams['ignore_layer'],
+                                                  ablate_liwc='liwc' in hyperparams['ignore_layer'])
+
+    else:
+        Exception("Unknown type!")
 
     return data_generator_train, data_generator_valid
 
@@ -78,8 +105,12 @@ def initialize_model(hyperparams, hyperparams_features, model_type,
         model = build_HAN(hyperparams, hyperparams_features,
                                          emotions_dim, stopwords_dim, liwc_categories_dim,
                                          ignore_layer=hyperparams['ignore_layer'])
+    elif model_type == 'HAN_BERT':
+        model = build_HAN_BERT(hyperparams, hyperparams_features,
+                                         emotions_dim, stopwords_dim, liwc_categories_dim,
+                                         ignore_layer=hyperparams['ignore_layer'])
     else:
-        model = build_HAN_BERT
+        Exception("Unknown model!")
 
     model.summary()
     return model
@@ -149,6 +180,14 @@ def train(user_level_data, subjects_split, save, store_path,
           validation_set='valid',
           version=0, epochs=50, start_epoch=0,
           session=None, model=None, transfer_layer=False):
+
+    if model_type == "HAN":
+        tokenization_method = "tok_base"
+    elif model_type == "HAN_BERT":
+        tokenization_method = "tok_Bert"
+    else:
+        Exception("Unknown model type!")
+
     if not logger:
         logger = logging.getLogger('training')
         ch = logging.StreamHandler(sys.stdout)
@@ -169,9 +208,12 @@ def train(user_level_data, subjects_split, save, store_path,
         model_path = 'models/%s_%s_%s%d' % (network_type, dataset_type, hierarch_type, version)
 
         logger.info("Initializing datasets...\n")
+
+        start = time.time()
         data_generator_train, data_generator_valid = initialize_datasets(user_level_data, subjects_split,
-                                                                         hyperparams, hyperparams_features,
+                                                                         hyperparams, hyperparams_features, tokenization_method,
                                                                          validation_set=validation_set)
+        print(f"Elapsed time for initializing datasets: {time.time()-start}")
 
         model = initialize_model(hyperparams, hyperparams_features, model_type,
                                     session=session, transfer=transfer_layer)
