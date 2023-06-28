@@ -10,12 +10,14 @@ from keras.metrics import AUC, Precision, Recall
 from metrics import Metrics
 from resource_loader import load_embeddings
 from transformers import TFBertModel
+import time
 
 
 #print(tf.__version__)
 def build_HAN(hyperparams, hyperparams_features,
                              emotions_dim, stopwords_list_dim, liwc_categories_dim,
                              ignore_layer=[]):
+
     embedding_matrix = load_embeddings(hyperparams_features['embeddings_path'],
                                        hyperparams_features['embedding_dim'],
                                        hyperparams_features['vocabulary_path'])
@@ -28,8 +30,8 @@ def build_HAN(hyperparams, hyperparams_features,
                                 embeddings_regularizer=regularizers.l2(hyperparams['l2_embeddings']),
                                 weights=[embedding_matrix],
                                 trainable=hyperparams['trainable_embeddings'],
-                                name='embeddings_layer')(
-        tokens_features)
+                                name='embeddings_layer')(tokens_features)
+
     embedding_layer = Dropout(hyperparams['dropout'], name='embedding_dropout')(embedding_layer)
 
     lstm_layers = LSTM(hyperparams['lstm_units'],
@@ -158,6 +160,7 @@ def build_HAN(hyperparams, hyperparams_features,
                                metrics=[metrics_class.precision_m, metrics_class.recall_m,
                                         metrics_class.f1_m, AUC(), Precision(), Recall()])
 
+
     return hierarchical_model
 
 def build_HAN_BERT(hyperparams, hyperparams_features,
@@ -169,8 +172,17 @@ def build_HAN_BERT(hyperparams, hyperparams_features,
     tokens_features_attnmasks = Input(shape=(hyperparams['maxlen'],), name='word_seq_attnmasks',dtype=tf.int32)
 
     #extracting the last four hidden states and summing them
-    BERT_embedding_layer = TFBertModel.from_pretrained('bert-base-uncased')(tokens_features_ids, attention_mask=tokens_features_attnmasks,
-                                                                            output_hidden_states=True)[2][-4:]
+    if hyperparams_features['use_local_pretrained_models']:
+        # BERT_embedding_layer = TFBertModel.from_pretrained(hyperparams_features['BERT_path'])(
+        #                                                     tokens_features_ids, attention_mask=tokens_features_attnmasks,
+        #                                                     output_hidden_states=True)[2][-4:]
+        BERT_embedding_layer = TFBertModel.from_pretrained(hyperparams_features['BERT_path'], output_hidden_states=True)(
+                                                            tokens_features_ids, attention_mask=tokens_features_attnmasks
+                                                            )[2][-4:]
+    else:
+        BERT_embedding_layer = TFBertModel.from_pretrained('bert-base-uncased')(
+                                                            tokens_features_ids, attention_mask=tokens_features_attnmasks,
+                                                            output_hidden_states=True)[2][-4:]
 
     embedding_layer = Lambda(lambda x: tf.keras.backend.sum(x, axis=0))(BERT_embedding_layer)
 

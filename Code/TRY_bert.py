@@ -42,9 +42,6 @@ task = "Anorexia"                #"Self-Harm" - "Anorexia" - "Depression"
 model_type = "HAN_BERT"          #"HAN" - "HAN_BERT"
 print(f"Running {task} task using the {model_type} model!")
 
-#ENCODING TAKES MORE THAN 10 TIMES LONGER...
-#check locally saved tokenizer
-
 save = True
 if save:
     print("Model will be saved!")

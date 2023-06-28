@@ -210,7 +210,6 @@ class DataGenerator_Base(Sequence):
                 words = all_words[i]
 
                 for p, posting in enumerate(words):
-                    start = time.time()
                     encoded_tokens, encoded_emotions, encoded_pronouns, encoded_stopwords, encoded_liwc, \
                         = self.__encode_text__(words[p], raw_text[p])
                     if 'liwc' in self.data[subject] and not self.compute_liwc:
@@ -225,8 +224,6 @@ class DataGenerator_Base(Sequence):
 
                     categ_data.append(encoded_emotions + [encoded_pronouns] + liwc)
                     sparse_data.append(encoded_stopwords)
-
-                    print(f"elapsed time for encoding: {time.time()-start}")
 
                 # For each range
                 tokens_data_padded = np.array(pad_sequences(tokens_data, maxlen=self.seq_len,
@@ -317,6 +314,13 @@ class DataGenerator_BERT(Sequence):
         self._post_indexes_per_user()
         self.on_epoch_end()
 
+        if hyperparams_features['use_local_pretrained_models']:
+            self.tokenizer = BertTokenizerFast.from_pretrained(hyperparams_features['BERT_path'],
+                                                               do_lower_case=True)
+        else:
+            self.tokenizer = BertTokenizerFast.from_pretrained('bert-base-uncased',
+                                                               do_lower_case=True)
+
     def _post_indexes_per_user(self):
         self.indexes_per_user = {u: [] for u in range(len(self.subjects_split[self.set]))}
         self.indexes_with_user = []
@@ -372,9 +376,7 @@ class DataGenerator_BERT(Sequence):
         self.item_weights = []
 
     def __encode_text__(self, tokens, raw_text):
-        tokenizer = BertTokenizerFast.from_pretrained('bert-base-uncased', do_lower_case=True)
-
-        encodings = tokenizer(tokens, add_special_tokens=True, max_length=hyperparams['maxlen'],
+        encodings = self.tokenizer(tokens, add_special_tokens=True, max_length=hyperparams['maxlen'],
                                     padding='max_length', truncation=True,
                                     return_attention_mask=True, is_split_into_words=True,
                                     return_tensors='tf'

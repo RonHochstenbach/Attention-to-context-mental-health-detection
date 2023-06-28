@@ -209,11 +209,9 @@ def train(user_level_data, subjects_split, save, store_path,
 
         logger.info("Initializing datasets...\n")
 
-        start = time.time()
         data_generator_train, data_generator_valid = initialize_datasets(user_level_data, subjects_split,
                                                                          hyperparams, hyperparams_features, tokenization_method,
                                                                          validation_set=validation_set)
-        print(f"Elapsed time for initializing datasets: {time.time()-start}")
 
         model = initialize_model(hyperparams, hyperparams_features, model_type,
                                     session=session, transfer=transfer_layer)
