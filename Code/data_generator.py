@@ -315,14 +315,14 @@ class DataGenerator_BERT(Sequence):
         self._post_indexes_per_user()
         self.on_epoch_end()
 
-        if model_type == "BERT":
+        if model_type == "HAN_BERT":
             self.tokenizer = BertTokenizerFast.from_pretrained('bert-base-uncased',
                                                            do_lower_case=True)
-        elif model_type == "RoBERTa":
+        elif model_type == "HAN_RoBERTa":
             self.tokenizer = RobertaTokenizerFast.from_pretrained('roberta-base',
                                                            do_lower_case=True, add_prefix_space=True)
         else:
-            Exception("Unknown model type!")
+            raise Exception("Unknown model type!")
 
     def _post_indexes_per_user(self):
         self.indexes_per_user = {u: [] for u in range(len(self.subjects_split[self.set]))}

@@ -39,7 +39,7 @@ hyperparams['optimizer'] = optimizers.legacy.Adam(learning_rate=hyperparams['lr'
 
 #IMPORT DATA
 task = "Self-Harm"                #"Self-Harm" - "Anorexia" - "Depression"
-model_type = "HAN_BERT"          #"HAN" - "HAN_BERT" - "HAN_RoBERTa"
+model_type = "HAN_RoBERTa"          #"HAN" - "HAN_BERT" - "HAN_RoBERTa"
 print(f"Running {task} task using the {model_type} model!")
 
 save = False
@@ -74,7 +74,7 @@ with tf.device('GPU:0' if tf.config.list_physical_devices('GPU') else 'CPU:0'):
           dataset_type=task,
           model_type=model_type,
           validation_set='valid',
-          version=0, epochs=2, start_epoch=0)
+          version=0, epochs=3, start_epoch=0)
 
     if save:
         logger.info("Saving model...\n")

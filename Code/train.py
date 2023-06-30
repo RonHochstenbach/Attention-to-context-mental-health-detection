@@ -41,7 +41,6 @@ def initialize_datasets(user_level_data, subjects_split, hyperparams, hyperparam
                                              compute_liwc=True,
                                              ablate_emotions='emotions' in hyperparams['ignore_layer'],
                                              ablate_liwc='liwc' in hyperparams['ignore_layer'])
-
     elif model_type == "HAN_BERT" or model_type == "HAN_RoBERTa":
         data_generator_train = DataGenerator_BERT(user_level_data, subjects_split, set_type='train',
                                                   hyperparams_features=hyperparams_features, model_type=model_type,
@@ -63,9 +62,8 @@ def initialize_datasets(user_level_data, subjects_split, hyperparams, hyperparam
                                                   compute_liwc=True,
                                                   ablate_emotions='emotions' in hyperparams['ignore_layer'],
                                                   ablate_liwc='liwc' in hyperparams['ignore_layer'])
-
     else:
-        Exception("Unknown type!")
+        raise Exception("Unknown type!")
 
     return data_generator_train, data_generator_valid
 
@@ -181,13 +179,6 @@ def train(user_level_data, subjects_split, save, store_path,
           version=0, epochs=50, start_epoch=0,
           session=None, model=None, transfer_layer=False):
 
-    if model_type == "HAN":
-        tokenization_method = "tok_base"
-    elif model_type == "HAN_BERT":
-        tokenization_method = "tok_Bert"
-    else:
-        Exception("Unknown model type!")
-
     if not logger:
         logger = logging.getLogger('training')
         ch = logging.StreamHandler(sys.stdout)
@@ -210,7 +201,7 @@ def train(user_level_data, subjects_split, save, store_path,
         logger.info("Initializing datasets...\n")
 
         data_generator_train, data_generator_valid = initialize_datasets(user_level_data, subjects_split,
-                                                                         hyperparams, hyperparams_features, tokenization_method,
+                                                                         hyperparams, hyperparams_features, model_type,
                                                                          validation_set=validation_set)
 
         model = initialize_model(hyperparams, hyperparams_features, model_type,
