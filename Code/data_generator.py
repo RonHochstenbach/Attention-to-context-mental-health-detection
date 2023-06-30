@@ -5,7 +5,7 @@ import re
 from keras.utils import pad_sequences
 from resource_loader import load_NRC, load_LIWC, load_vocabulary, load_stopwords
 from feature_encoders import encode_emotions, encode_pronouns, encode_stopwords, encode_liwc_categories
-from transformers import BertTokenizerFast
+from transformers import BertTokenizerFast, RobertaTokenizerFast
 from hyperparameters import hyperparams_features, hyperparams
 import time
 
@@ -158,7 +158,7 @@ class DataGenerator_Base(Sequence):
             post_indexes_per_user[user].append(post_indexes)
 
         X, s, y = self.__data_generation_hierarchical__(users, post_indexes_per_user)
-        print("call to getitem")
+
         if self.return_subjects:
             return X, s, y
         else:
@@ -265,7 +265,7 @@ class DataGenerator_BERT(Sequence):
 
     def __init__(self, user_level_data, subjects_split, set_type,
                  hyperparams_features,
-                 batch_size, seq_len,
+                 batch_size, seq_len, model_type,
                  compute_liwc=False,
                  post_groups_per_user=None, posts_per_group=10, post_offset=0,
                  max_posts_per_user=None,
@@ -315,12 +315,14 @@ class DataGenerator_BERT(Sequence):
         self._post_indexes_per_user()
         self.on_epoch_end()
 
-        if hyperparams_features['use_local_pretrained_models']:
-            self.tokenizer = BertTokenizerFast.from_pretrained(hyperparams_features['BERT_path'],
-                                                               do_lower_case=True)
-        else:
+        if model_type == "BERT":
             self.tokenizer = BertTokenizerFast.from_pretrained('bert-base-uncased',
-                                                               do_lower_case=True)
+                                                           do_lower_case=True)
+        elif model_type == "RoBERTa":
+            self.tokenizer = RobertaTokenizerFast.from_pretrained('roberta-base',
+                                                           do_lower_case=True, add_prefix_space=True)
+        else:
+            Exception("Unknown model type!")
 
     def _post_indexes_per_user(self):
         self.indexes_per_user = {u: [] for u in range(len(self.subjects_split[self.set]))}
@@ -420,7 +422,6 @@ class DataGenerator_BERT(Sequence):
             post_indexes_per_user[user].append(post_indexes)
 
         X, s, y = self.__data_generation_hierarchical__(users, post_indexes_per_user)
-        print("call to getitem")
         if self.return_subjects:
             return X, s, y
         else:
@@ -529,3 +530,5 @@ class DataGenerator_BERT(Sequence):
         return ((user_token_ids, user_token_attnmasks, user_categ_data, user_sparse_data),
                 np.array(subjects),
                 labels)
+
+

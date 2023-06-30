@@ -11,8 +11,7 @@ hyperparams_features = {
     "stopwords_path": root_dir + '/Resources/stopwords.txt',
     "embeddings_path": root_dir + "/Resources/glove.840B.300d.txt",
     #"liwc_words_cached": "data/liwc_categories_for_vocabulary_erisk_clpsych_stop_20K.pkl"
-    "BERT_path": root_dir + '/Resources/BERT-base-uncased/',
-    "use_local_pretrained_models": False
+    "BERT_path": root_dir + '/Resources/BERT-base-uncased/'
 }
 
 hyperparams = {
@@ -61,7 +60,7 @@ hyperparams = {
     "posts_per_user": None,
     "post_groups_per_user": None,
     "posts_per_group": 50,
-    "batch_size": 32,
+    "batch_size": 4,
     "padding": "pre",
     "hierarchical": True,
     "sample_seqs": False,

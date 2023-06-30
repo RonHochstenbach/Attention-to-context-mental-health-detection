@@ -18,10 +18,10 @@ os.environ["CUDA_VISIBLE_DEVICES"] = "0" # Note: when starting kernel, for gpu_a
 os.environ['TF_FORCE_GPU_ALLOW_GROWTH']='true'
 
 root_dir = "/Users/ronhochstenbach/Desktop/Thesis"
-def initialize_datasets(user_level_data, subjects_split, hyperparams, hyperparams_features, tokenization_method,
+def initialize_datasets(user_level_data, subjects_split, hyperparams, hyperparams_features, model_type,
                         validation_set, session=None):
 
-    if tokenization_method == "tok_base":
+    if model_type == "HAN":
         data_generator_train = DataGenerator_Base(user_level_data, subjects_split, set_type='train',
                                             hyperparams_features=hyperparams_features,
                                             seq_len=hyperparams['maxlen'], batch_size=hyperparams['batch_size'],
@@ -42,9 +42,9 @@ def initialize_datasets(user_level_data, subjects_split, hyperparams, hyperparam
                                              ablate_emotions='emotions' in hyperparams['ignore_layer'],
                                              ablate_liwc='liwc' in hyperparams['ignore_layer'])
 
-    elif tokenization_method == "tok_Bert":
+    elif model_type == "HAN_BERT" or model_type == "HAN_RoBERTa":
         data_generator_train = DataGenerator_BERT(user_level_data, subjects_split, set_type='train',
-                                                  hyperparams_features=hyperparams_features,
+                                                  hyperparams_features=hyperparams_features, model_type=model_type,
                                                   seq_len=hyperparams['maxlen'], batch_size=hyperparams['batch_size'],
                                                   posts_per_group=hyperparams['posts_per_group'],
                                                   post_groups_per_user=hyperparams['post_groups_per_user'],
@@ -54,7 +54,7 @@ def initialize_datasets(user_level_data, subjects_split, hyperparams, hyperparam
                                                   ablate_liwc='liwc' in hyperparams['ignore_layer'])
 
         data_generator_valid = DataGenerator_BERT(user_level_data, subjects_split, set_type=validation_set,
-                                                  hyperparams_features=hyperparams_features,
+                                                  hyperparams_features=hyperparams_features, model_type=model_type,
                                                   seq_len=hyperparams['maxlen'], batch_size=hyperparams['batch_size'],
                                                   posts_per_group=hyperparams['posts_per_group'],
                                                   post_groups_per_user=1,
@@ -105,8 +105,8 @@ def initialize_model(hyperparams, hyperparams_features, model_type,
         model = build_HAN(hyperparams, hyperparams_features,
                                          emotions_dim, stopwords_dim, liwc_categories_dim,
                                          ignore_layer=hyperparams['ignore_layer'])
-    elif model_type == 'HAN_BERT':
-        model = build_HAN_BERT(hyperparams, hyperparams_features,
+    elif model_type == 'HAN_BERT' or model_type == "HAN_RoBERTa":
+        model = build_HAN_BERT(hyperparams, hyperparams_features, model_type,
                                          emotions_dim, stopwords_dim, liwc_categories_dim,
                                          ignore_layer=hyperparams['ignore_layer'])
     else:

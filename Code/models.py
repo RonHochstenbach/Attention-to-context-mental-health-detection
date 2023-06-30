@@ -9,7 +9,7 @@ from keras import backend as K
 from keras.metrics import AUC, Precision, Recall
 from metrics import Metrics
 from resource_loader import load_embeddings
-from transformers import TFBertModel
+from transformers import TFBertModel, TFRobertaModel
 import time
 
 
@@ -163,7 +163,7 @@ def build_HAN(hyperparams, hyperparams_features,
 
     return hierarchical_model
 
-def build_HAN_BERT(hyperparams, hyperparams_features,
+def build_HAN_BERT(hyperparams, hyperparams_features, model_type,
                              emotions_dim, stopwords_list_dim, liwc_categories_dim,
                              ignore_layer=[]):
 
@@ -172,15 +172,20 @@ def build_HAN_BERT(hyperparams, hyperparams_features,
     tokens_features_attnmasks = Input(shape=(hyperparams['maxlen'],), name='word_seq_attnmasks',dtype=tf.int32)
 
     #extracting the last four hidden states and summing them
-    if hyperparams_features['use_local_pretrained_models']:
-        BERT_embedding_layer = TFBertModel.from_pretrained(hyperparams_features['BERT_path'])(
-                                                            tokens_features_ids, attention_mask=tokens_features_attnmasks,
-                                                            output_hidden_states=True)[2][-4:]
-    else:
+    if model_type == "HAN_BERT":
         BERT_embedding_layer = TFBertModel.from_pretrained('bert-base-uncased')(
                                                             tokens_features_ids, attention_mask=tokens_features_attnmasks,
-                                                            output_hidden_states=True)[2][-4:]
-    embedding_layer = Lambda(lambda x: tf.keras.backend.sum(x, axis=0))(BERT_embedding_layer)
+                                                            output_hidden_states=True, return_dict=True)[
+                                                                                   'hidden_states'][-4:]
+    elif model_type == "HAN_RoBERTa":
+        BERT_embedding_layer = TFRobertaModel.from_pretrained('roberta-base')(
+                                                            tokens_features_ids, attention_mask=tokens_features_attnmasks,
+                                                            output_hidden_states=True, return_dict=True)[
+                                                                                   'hidden_states'][-4:]
+    else:
+        Exception("Unknown model type!")
+
+    embedding_layer = Lambda(lambda x: tf.add_n([layer for layer in x]))(BERT_embedding_layer)
 
     embedding_layer = Dropout(hyperparams['dropout'], name='embedding_dropout')(embedding_layer)
 
@@ -231,7 +236,7 @@ def build_HAN_BERT(hyperparams, hyperparams_features,
     sentEncoder = Model(inputs=[tokens_features_ids,tokens_features_attnmasks],
                         outputs=sent_representation, name='sentEncoder')
 
-    #Set BERT model to non-trainable
+    #Set BERT/RoBERTa model to non-trainable
     [setattr(layer, 'trainable', False) for layer in sentEncoder.layers if layer._name == 'tf_bert_model']
 
     sentEncoder.summary()
