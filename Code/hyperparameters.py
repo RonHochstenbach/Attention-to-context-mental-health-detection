@@ -12,7 +12,7 @@ hyperparams_features = {
     "embeddings_path": root_dir + "/Resources/glove.840B.300d.txt",
     #"liwc_words_cached": "data/liwc_categories_for_vocabulary_erisk_clpsych_stop_20K.pkl"
     "BERT_path": root_dir + '/Resources/BERT-base-uncased/',
-    "use_local_pretrained_models": True
+    "use_local_pretrained_models": False
 }
 
 hyperparams = {

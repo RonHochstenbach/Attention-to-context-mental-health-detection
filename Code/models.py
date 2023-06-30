@@ -173,17 +173,13 @@ def build_HAN_BERT(hyperparams, hyperparams_features,
 
     #extracting the last four hidden states and summing them
     if hyperparams_features['use_local_pretrained_models']:
-        # BERT_embedding_layer = TFBertModel.from_pretrained(hyperparams_features['BERT_path'])(
-        #                                                     tokens_features_ids, attention_mask=tokens_features_attnmasks,
-        #                                                     output_hidden_states=True)[2][-4:]
-        BERT_embedding_layer = TFBertModel.from_pretrained(hyperparams_features['BERT_path'], output_hidden_states=True)(
-                                                            tokens_features_ids, attention_mask=tokens_features_attnmasks
-                                                            )[2][-4:]
+        BERT_embedding_layer = TFBertModel.from_pretrained(hyperparams_features['BERT_path'])(
+                                                            tokens_features_ids, attention_mask=tokens_features_attnmasks,
+                                                            output_hidden_states=True)[2][-4:]
     else:
         BERT_embedding_layer = TFBertModel.from_pretrained('bert-base-uncased')(
                                                             tokens_features_ids, attention_mask=tokens_features_attnmasks,
                                                             output_hidden_states=True)[2][-4:]
-
     embedding_layer = Lambda(lambda x: tf.keras.backend.sum(x, axis=0))(BERT_embedding_layer)
 
     embedding_layer = Dropout(hyperparams['dropout'], name='embedding_dropout')(embedding_layer)

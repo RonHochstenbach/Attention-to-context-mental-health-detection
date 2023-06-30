@@ -158,6 +158,7 @@ class DataGenerator_Base(Sequence):
             post_indexes_per_user[user].append(post_indexes)
 
         X, s, y = self.__data_generation_hierarchical__(users, post_indexes_per_user)
+        print("call to getitem")
         if self.return_subjects:
             return X, s, y
         else:
@@ -378,8 +379,7 @@ class DataGenerator_BERT(Sequence):
     def __encode_text__(self, tokens, raw_text):
         encodings = self.tokenizer(tokens, add_special_tokens=True, max_length=hyperparams['maxlen'],
                                     padding='max_length', truncation=True,
-                                    return_attention_mask=True, is_split_into_words=True,
-                                    return_tensors='tf'
+                                    return_attention_mask=True, is_split_into_words=True
                               )
         encoded_token_ids = encodings['input_ids']
         encoded_token_attnmasks = encodings['attention_mask']
@@ -420,6 +420,7 @@ class DataGenerator_BERT(Sequence):
             post_indexes_per_user[user].append(post_indexes)
 
         X, s, y = self.__data_generation_hierarchical__(users, post_indexes_per_user)
+        print("call to getitem")
         if self.return_subjects:
             return X, s, y
         else:

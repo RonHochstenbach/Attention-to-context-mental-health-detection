@@ -38,11 +38,11 @@ else:
 hyperparams['optimizer'] = optimizers.legacy.Adam(learning_rate=hyperparams['lr'], beta_1=0.9, beta_2=0.999, epsilon=0.001)
 
 #IMPORT DATA
-task = "Anorexia"                #"Self-Harm" - "Anorexia" - "Depression"
+task = "Self-Harm"                #"Self-Harm" - "Anorexia" - "Depression"
 model_type = "HAN_BERT"          #"HAN" - "HAN_BERT"
 print(f"Running {task} task using the {model_type} model!")
 
-save = True
+save = False
 if save:
     print("Model will be saved!")
 else:
@@ -55,7 +55,7 @@ else:
 writings_df = pd.read_pickle(root_dir + "/Processed Data/tokenized_df_" + task + ".pkl")
 
 #CREATE VOCABULARY, PROCESS DATA, DATAGENERATOR
-user_level_data, subjects_split, vocabulary = load_erisk_data(writings_df,train_prop= 0.7,
+user_level_data, subjects_split, vocabulary = load_erisk_data(writings_df,train_prop= 0.2,
                                                            hyperparams_features=hyperparams_features,
                                                            logger=None, by_subset=True)
 
@@ -71,7 +71,7 @@ with tf.device('GPU:0' if tf.config.list_physical_devices('GPU') else 'CPU:0'):
           dataset_type=task,
           model_type=model_type,
           validation_set='valid',
-          version=0, epochs=15, start_epoch=0)
+          version=0, epochs=2, start_epoch=0)
 
     if save:
         logger.info("Saving model...\n")
