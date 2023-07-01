@@ -35,6 +35,10 @@ hyperparams = {
 
     "transfer_units": 20,
 
+    "num_heads": 2,
+    "key_dim": 128,
+    "num_layers":1,
+
     "dropout": 0.3,             #Appendix uban
     "l2_dense": 0.00001,        #Appendix uban (?)
     "l2_embeddings": 0.00001,   #Appendix uban (?)
@@ -43,6 +47,8 @@ hyperparams = {
 
     "ignore_layer": ["bert_layer"
                     ],
+
+    "use_positional_encodings": True,
 
     "decay": 0.001,
     "lr": 0.0001,               #appendix uban
@@ -60,11 +66,12 @@ hyperparams = {
     "posts_per_user": None,
     "post_groups_per_user": None,
     "posts_per_group": 50,
-    "batch_size": 4,
+    "batch_size": 8,
     "padding": "pre",
     "hierarchical": True,
     "sample_seqs": False,
     "sampling_distr": "exp",
+
 }
 
 # with open('/Users/ronhochstenbach/Desktop/Thesis/Data/Resources/config.json', 'w') as file:

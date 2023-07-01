@@ -39,16 +39,16 @@ hyperparams['optimizer'] = optimizers.legacy.Adam(learning_rate=hyperparams['lr'
 
 #IMPORT DATA
 task = "Self-Harm"                #"Self-Harm" - "Anorexia" - "Depression"
-model_type = "HAN_RoBERTa"          #"HAN" - "HAN_BERT" - "HAN_RoBERTa"
+model_type = "HSAN"                #"HAN" - "HAN_BERT" - "HAN_RoBERTa" - "HSAN"
 print(f"Running {task} task using the {model_type} model!")
 
-save = False
+save = True
 if save:
     print("Model will be saved!")
 else:
     print("Model will NOT be saved!")
 
-if (model_type == "HAN_BERT" or model_type == "HAN_RoBERTa") and hyperparams['batch_size'] > 8:
+if (model_type == "HAN_BERT" or model_type == "HAN_RoBERTa") and hyperparams['batch_size'] > 9:
     raise Warning("WILL PROBABLY RESULT IN OOM ISSUES!")
 
 # writings_df = pd.read_pickle(root_dir + "/Processed Data/df_" + task + ".pkl")

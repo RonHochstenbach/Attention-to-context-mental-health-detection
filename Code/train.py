@@ -4,7 +4,7 @@ from metrics import Metrics
 import logging, sys, os
 import pickle
 from data_generator import DataGenerator_Base, DataGenerator_BERT
-from models import build_HAN, build_HAN_BERT
+from models import build_HAN, build_HAN_BERT, build_HSAN
 from resource_loader import load_NRC, load_LIWC, load_stopwords
 import tensorflow as tf
 import keras
@@ -21,7 +21,7 @@ root_dir = "/Users/ronhochstenbach/Desktop/Thesis"
 def initialize_datasets(user_level_data, subjects_split, hyperparams, hyperparams_features, model_type,
                         validation_set, session=None):
 
-    if model_type == "HAN":
+    if model_type == "HAN" or model_type == "HSAN":
         data_generator_train = DataGenerator_Base(user_level_data, subjects_split, set_type='train',
                                             hyperparams_features=hyperparams_features,
                                             seq_len=hyperparams['maxlen'], batch_size=hyperparams['batch_size'],
@@ -105,6 +105,10 @@ def initialize_model(hyperparams, hyperparams_features, model_type,
                                          ignore_layer=hyperparams['ignore_layer'])
     elif model_type == 'HAN_BERT' or model_type == "HAN_RoBERTa":
         model = build_HAN_BERT(hyperparams, hyperparams_features, model_type,
+                                         emotions_dim, stopwords_dim, liwc_categories_dim,
+                                         ignore_layer=hyperparams['ignore_layer'])
+    elif model_type == 'HSAN':
+        model = build_HSAN(hyperparams, hyperparams_features,
                                          emotions_dim, stopwords_dim, liwc_categories_dim,
                                          ignore_layer=hyperparams['ignore_layer'])
     else:
