@@ -148,10 +148,8 @@ def build_HAN(hyperparams, hyperparams_features,
                                        ],
                                outputs=output_layer)
 
-    metrics_class = Metrics(threshold=hyperparams['threshold'])
     hierarchical_model.compile(hyperparams['optimizer'], K.binary_crossentropy,
-                               metrics=[metrics_class.precision_m, metrics_class.recall_m,
-                                        metrics_class.f1_m, AUC(), Precision(), Recall()])
+                               metrics=[AUC(), Precision(), Recall()])
 
 
     return hierarchical_model

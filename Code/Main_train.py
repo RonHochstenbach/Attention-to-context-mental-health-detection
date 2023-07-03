@@ -33,7 +33,8 @@ else:
     os.environ['TF_FORCE_GPU_ALLOW_GROWTH'] = 'true'
     print("GPU found!")
 
-hyperparams['optimizer'] = optimizers.legacy.Adam(learning_rate=hyperparams['lr'], beta_1=0.9, beta_2=0.999, epsilon=0.001)
+hyperparams['optimizer'] = optimizers.legacy.Adam(learning_rate=hyperparams['lr'],
+                                                  decay = hyperparams['decay'])
 
 #IMPORT DATA
 task = "Self-Harm"                #"Self-Harm" - "Anorexia" - "Depression"

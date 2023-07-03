@@ -1,8 +1,11 @@
 import pandas as pd
 from hyperparameters import hyperparams_features, hyperparams
 from data_loader import load_erisk_data
-
+import multiprocessing
 from data_generator import DataGenerator_BERT
+
+print(multiprocessing.cpu_count())
+
 
 root_dir = "/Users/ronhochstenbach/Desktop/Thesis/Data"
 
