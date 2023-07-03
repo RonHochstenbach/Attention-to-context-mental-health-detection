@@ -13,14 +13,12 @@ from matplotlib import pyplot as plt
 from tensorflow.keras import optimizers
 
 from hyperparameters import hyperparams_features, hyperparams
-from resource_loader import load_NRC, readDict, load_stopwords
 from data_loader import load_erisk_data
-from auxilliary_functions import tokenize_fields, tokenize_tweets, build_vocabulary, tokenize_fields_bert
-from train import train
+from train import initialize_datasets, train
 from feature_encoders import encode_liwc_categories
 from datetime import datetime
 from load_save_model import save_model_and_params
-from transformers import BertTokenizer
+
 
 root_dir = "/Users/ronhochstenbach/Desktop/Thesis/Data"
 
@@ -69,12 +67,19 @@ with tf.device('GPU:0' if tf.config.list_physical_devices('GPU') else 'CPU:0'):
 
     store_path = root_dir + '/Saved Models/' + task + '_' + model_type + '_' + str(datetime.now())
 
+    data_generator_train, data_generator_valid = initialize_datasets(user_level_data, subjects_split,
+                                                                     hyperparams, hyperparams_features, model_type,
+                                                                     validation_set='valid')
+
+
+
+
     model, history = train(user_level_data, subjects_split, save, store_path,
           hyperparams=hyperparams, hyperparams_features=hyperparams_features,
           dataset_type=task,
           model_type=model_type,
           validation_set='valid',
-          version=0, epochs=3, start_epoch=0)
+          version=0, epochs=15, start_epoch=0)
 
     if save:
         logger.info("Saving model...\n")

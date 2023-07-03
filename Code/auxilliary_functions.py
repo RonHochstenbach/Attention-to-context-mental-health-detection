@@ -6,6 +6,7 @@ import pickle
 from transformers import BertTokenizer
 
 from hyperparameters import hyperparams_features, hyperparams
+from resource_loader import load_NRC, readDict, load_stopwords, load_LIWC
 
 def tokenize_tweets(t, stop=True):
     tweet_tokenizer = TweetTokenizer()
@@ -93,3 +94,15 @@ def build_vocabulary(writings_df):
         pickle.dump(vocabulary_all, f, protocol=pickle.HIGHEST_PROTOCOL)
 
     return vocabulary_all
+
+def feature_sizes():
+    emotions = load_NRC(hyperparams_features['nrc_lexicon_path'])
+    liwc_categories = load_LIWC(hyperparams_features['liwc_path'])
+    stopwords_list = load_stopwords(hyperparams_features['stopwords_path'])
+
+    return_dict = {"emotions_dim": len(emotions),
+                   "liwc_categories_dim": len(liwc_categories),
+                   "stopwords_dim": len(stopwords_list)}
+
+    return return_dict
+

@@ -1,12 +1,8 @@
 import pandas as pd
-import matplotlib.pyplot as plt
-from resource_loader import load_NRC, load_LIWC, load_stopwords
 from hyperparameters import hyperparams_features, hyperparams
 from data_loader import load_erisk_data
-from transformers import BertTokenizerFast
-import time
 
-from data_generator import DataGenerator_Base, DataGenerator_BERT
+from data_generator import DataGenerator_BERT
 
 root_dir = "/Users/ronhochstenbach/Desktop/Thesis/Data"
 

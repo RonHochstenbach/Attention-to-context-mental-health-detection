@@ -1,17 +1,14 @@
 import tensorflow as tf
-from keras.models import Sequential, Model, load_model
+from keras.models import Model
 from keras.layers import Dense, Dropout, Embedding, LSTM, Lambda, BatchNormalization, TimeDistributed, \
-    Bidirectional, Input, concatenate, Flatten, RepeatVector, Activation, Multiply, Permute, MultiHeadAttention
+    Input, concatenate, Flatten, RepeatVector, Activation, Multiply, Permute, MultiHeadAttention
 from keras_nlp.layers import SinePositionEncoding
 from keras import regularizers
-from keras import optimizers
 from keras import backend as K
 from keras.metrics import AUC, Precision, Recall
 from metrics import Metrics
 from resource_loader import load_embeddings
 from transformers import TFBertModel, TFRobertaModel
-import time
-
 
 
 def build_HAN(hyperparams, hyperparams_features,
@@ -140,10 +137,6 @@ def build_HAN(hyperparams, hyperparams_features,
         user_representation = lstm_user_layers
 
     user_representation = Dropout(hyperparams['dropout'], name='user_repr_dropout')(user_representation)
-
-    if hyperparams['dense_user_units']:
-        user_representation = Dense(units=hyperparams['dense_user_units'], activation='relu',
-                                    name='dense_user_representation')(user_representation)
 
     output_layer = Dense(1, activation='sigmoid',
                          name='output_layer',
@@ -303,10 +296,6 @@ def build_HAN_BERT(hyperparams, hyperparams_features, model_type,
 
     user_representation = Dropout(hyperparams['dropout'], name='user_repr_dropout')(user_representation)
 
-    if hyperparams['dense_user_units']:
-        user_representation = Dense(units=hyperparams['dense_user_units'], activation='relu',
-                                    name='dense_user_representation')(user_representation)
-
     output_layer = Dense(1, activation='sigmoid',
                          name='output_layer',
                          kernel_regularizer=regularizers.l2(hyperparams['l2_dense'])
@@ -443,10 +432,17 @@ def build_HSAN(hyperparams, hyperparams_features,
                                                            name=f"MH-attention_layer_{layer}")(
                                                             user_representation_attention,user_representation_attention)
 
-    user_representation_attention = Lambda(lambda xin: K.sum(xin, axis=1),
-                                 output_shape=(hyperparams['lstm_units']+hyperparams["dense_bow_units"]+
-                                               hyperparams["dense_numerical_units"],)
-                                 )(user_representation_attention)
+    # user_representation_attention = Lambda(lambda xin: K.sum(xin, axis=1),
+    #                              output_shape=(hyperparams['lstm_units']+hyperparams["dense_bow_units"]+
+    #                                            hyperparams["dense_numerical_units"],)
+    #                              )(user_representation_attention)
+
+    user_representation_attention = Permute([2,1])(user_representation_attention)
+    user_representation_attention = Dense(1, activation='sigmoid',
+                         name='user_att_dense',
+                         kernel_regularizer=regularizers.l2(hyperparams['l2_dense'])
+                         )(user_representation_attention)
+    user_representation_attention = Lambda (lambda x: tf.squeeze(x, axis=2))(user_representation_attention)
 
     user_representation = Dropout(hyperparams['dropout'], name='user_repr_dropout')(user_representation_attention)
 

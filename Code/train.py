@@ -1,15 +1,11 @@
 from callbacks import FreezeLayer, WeightsHistory, LRHistory
 from keras import callbacks
-from metrics import Metrics
 import logging, sys, os
-import pickle
 from data_generator import DataGenerator_Base, DataGenerator_BERT
 from models import build_HAN, build_HAN_BERT, build_HSAN
 from resource_loader import load_NRC, load_LIWC, load_stopwords
-import tensorflow as tf
 import keras
 import multiprocessing
-import time
 
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
 # os.environ['CUDA_VISIBLE_DEVICES'] = '-1' # When cudnn implementation not found, run this
@@ -25,7 +21,7 @@ def initialize_datasets(user_level_data, subjects_split, hyperparams, hyperparam
         data_generator_train = DataGenerator_Base(user_level_data, subjects_split, set_type='train',
                                             hyperparams_features=hyperparams_features,
                                             seq_len=hyperparams['maxlen'], batch_size=hyperparams['batch_size'],
-                                            posts_per_group=hyperparams['posts_per_group'], post_groups_per_user=hyperparams['post_groups_per_user'],
+                                            posts_per_group=hyperparams['posts_per_group'], post_groups_per_user=None,
                                             max_posts_per_user=hyperparams['posts_per_user'],
                                              compute_liwc=True,
                                              ablate_emotions='emotions' in hyperparams['ignore_layer'],
@@ -46,7 +42,7 @@ def initialize_datasets(user_level_data, subjects_split, hyperparams, hyperparam
                                                   hyperparams_features=hyperparams_features, model_type=model_type,
                                                   seq_len=hyperparams['maxlen'], batch_size=hyperparams['batch_size'],
                                                   posts_per_group=hyperparams['posts_per_group'],
-                                                  post_groups_per_user=hyperparams['post_groups_per_user'],
+                                                  post_groups_per_user=None,
                                                   max_posts_per_user=hyperparams['posts_per_user'],
                                                   compute_liwc=True,
                                                   ablate_emotions='emotions' in hyperparams['ignore_layer'],
