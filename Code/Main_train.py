@@ -20,7 +20,8 @@ from datetime import datetime
 from load_save_model import save_model_and_params
 
 
-root_dir = "/Users/ronhochstenbach/Desktop/Thesis/Data"
+#root_dir = "/Users/ronhochstenbach/Desktop/Thesis/Data"
+root_dir = "/content/drive/MyDrive/Thesis/Data"  #when cloning for colab
 
 logger = logging.getLogger('training')
 
@@ -38,7 +39,7 @@ hyperparams['optimizer'] = optimizers.legacy.Adam(learning_rate=hyperparams['lr'
 
 #IMPORT DATA
 task = "Self-Harm"                #"Self-Harm" - "Anorexia" - "Depression"
-model_type = "HSAN"                #"HAN" - "HAN_BERT" - "HAN_RoBERTa" - "HSAN"
+model_type = "HAN"                #"HAN" - "HAN_BERT" - "HAN_RoBERTa" - "HSAN"
 print(f"Running {task} task using the {model_type} model!")
 
 save = True
@@ -57,7 +58,7 @@ if (model_type == "HAN_BERT" or model_type == "HAN_RoBERTa") and hyperparams['ba
 writings_df = pd.read_pickle(root_dir + "/Processed Data/tokenized_df_" + task + ".pkl")
 
 #CREATE VOCABULARY, PROCESS DATA, DATAGENERATOR
-user_level_data, subjects_split, vocabulary = load_erisk_data(writings_df,train_prop= 0.7,
+user_level_data, subjects_split, vocabulary = load_erisk_data(writings_df,train_prop= 1,
                                                            hyperparams_features=hyperparams_features,
                                                            logger=None, by_subset=True)
 
@@ -77,10 +78,10 @@ with tf.device('GPU:0' if tf.config.list_physical_devices('GPU') else 'CPU:0'):
 
     model, history = train(user_level_data, subjects_split, save, store_path,
           hyperparams=hyperparams, hyperparams_features=hyperparams_features,
+          epochs = 15,
           dataset_type=task,
           model_type=model_type,
-          validation_set='valid',
-          version=0, epochs=15, start_epoch=0)
+          validation_set='valid',start_epoch=0)
 
     if save:
         logger.info("Saving model...\n")

@@ -1,11 +1,12 @@
 import pandas as pd
 
 from load_save_model import load_saved_model_weights, load_params
-from data_generator import DataGenerator
+from data_generator import DataGenerator_Base
 from data_loader import load_erisk_data
 
-root_dir = "/Users/ronhochstenbach/Desktop/Thesis/Data"
-saved_path = root_dir + '/Saved Models/Self-Harm_HAN_2023-06-21 23:08:16.405602'
+#root_dir = "/Users/ronhochstenbach/Desktop/Thesis/Data"
+root_dir = "/content/drive/MyDrive/Thesis/Data"  #when cloning for colab
+saved_path = root_dir + '/Saved Models/Self-Harm_HAN_2023-07-07 22:23:15.190456'
 
 hyperparams, hyperparams_features = load_params(saved_path)
 
@@ -24,7 +25,7 @@ user_level_data, subjects_split, vocabulary = load_erisk_data(writings_df,train_
 
 print(f"There are {len(user_level_data)} subjects, of which {len(subjects_split['train'])} train and {len(subjects_split['test'])} test.")
 
-data_generator_test = DataGenerator(user_level_data, subjects_split, set_type='test',
+data_generator_test = DataGenerator_Base(user_level_data, subjects_split, set_type='test',
                                      hyperparams_features=hyperparams_features,
                                      seq_len=hyperparams['maxlen'], batch_size=hyperparams['batch_size'],
                                      posts_per_group=hyperparams['posts_per_group'],

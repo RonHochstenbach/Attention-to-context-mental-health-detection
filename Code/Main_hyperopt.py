@@ -25,7 +25,9 @@ from datetime import datetime
 from load_save_model import save_model_and_params
 
 
-root_dir = "/Users/ronhochstenbach/Desktop/Thesis/Data"
+#root_dir = "/Users/ronhochstenbach/Desktop/Thesis/Data"
+root_dir = "/content/drive/MyDrive/Thesis/Data"  #when cloning for colab
+
 
 logger = logging.getLogger('training')
 
@@ -42,13 +44,13 @@ hyperparams['optimizer'] = optimizers.legacy.Adam(learning_rate=hyperparams['lr'
 
 #IMPORT DATA
 task = "Self-Harm"                #"Self-Harm" - "Anorexia" - "Depression"
-model_type = "HAN_BERT"                #"HAN" - "HAN_BERT" - "HAN_RoBERTa" - "HSAN"
+model_type = "HAN"                #"HAN" - "HAN_BERT" - "HAN_RoBERTa" - "HSAN"
 print(f"Running Hyperopt for the {task} task using the {model_type} model!")
 
 writings_df = pd.read_pickle(root_dir + "/Processed Data/tokenized_df_" + task + ".pkl")
 
 #CREATE VOCABULARY, PROCESS DATA, DATAGENERATOR
-user_level_data, subjects_split, vocabulary = load_erisk_data(writings_df,train_prop= 0.2,
+user_level_data, subjects_split, vocabulary = load_erisk_data(writings_df,train_prop= 0.7,
                                                            hyperparams_features=hyperparams_features,
                                                            logger=None, by_subset=True)
 
@@ -57,8 +59,8 @@ print(f"There are {len(user_level_data)} subjects, of which {len(subjects_split[
 with tf.device('GPU:0' if tf.config.list_physical_devices('GPU') else 'CPU:0'):
     print(f"Training on {'GPU:0' if tf.config.list_physical_devices('GPU') else 'CPU:0'}!")
 
-    max_hyperopt_trials = 20
-    tune_epochs = 25
+    max_hyperopt_trials = 5
+    tune_epochs = 20
 
     #Defining the hyperparameter search space and setting up the experiment
     parameter_space = {
@@ -87,6 +89,32 @@ with tf.device('GPU:0' if tf.config.list_physical_devices('GPU') else 'CPU:0'):
         "maxlen": {"type": "discrete", "values": [256]},                                                 # Fixed
     }
 
+    # parameter_space = {
+    #     "lstm_units": {"type": "discrete", "values": [128]},                                         # Fixed
+    #     "lstm_units_user": {"type": "discrete", "values": [32]},                                        # Fixed
+    #     "dense_bow_units": {"type": "discrete", "values": [20]},                                        # Fixed
+    #     "dense_numerical_units": {"type": "discrete", "values": [20]},  # Fixed
+    #     "lr": {"type": "discrete", "values": [0.0001]},
+    #     "l2_dense": {"type": "discrete", "values": [0.00001]},
+    #     "l2_embeddings": {"type": "discrete", "values": [0.00001]},
+    #     "dropout": {"type": "discrete", "values": [0.3]},
+    #     "norm_momentum": {"type": "discrete", "values": [0.1]},
+    #     "batch_size": {"type": "discrete", "values" :[32]},           #ADAPT BASED ON ALGO AND WHERE RUNNING!
+    #     "positive_class_weight": {"type": "integer", "min": 2, "max": 10},
+    #     "trainable_embeddings": {"type": "discrete", "values": [True]},
+    #     "sample_seqs": {"type": "discrete", "values": [False]},
+    #     "freeze_patience": {"type": "discrete", "values": [2000]},
+    #     "lr_reduce_factor": {"type": "discrete", "values": [0.8]},
+    #     "scheduled_lr_reduce_factor": {"type": "discrete", "values": [0.5]},
+    #     "lr_reduce_patience": {"type": "discrete", "values": [55]},
+    #     "scheduled_lr_reduce_patience": {"type": "discrete", "values": [95]},
+    #     "early_stopping_patience": {"type": "discrete", "values": [5]},
+    #     "decay": {"type": "discrete", "values": [0.001]},
+    #     "sampling_distr": {"type": "categorical", "values": ["exp"]},
+    #     "posts_per_group": {"type": "discrete", "values": [50]},                                        # Fixed
+    #     "maxlen": {"type": "discrete", "values": [256]},                                                 # Fixed
+    # }
+
     #Add hyperparams specific to HSAN
     if model_type == "HSAN":
         parameter_space["num_heads"] = {"type": "integer", "min": 1, "max": 5}
@@ -103,10 +131,10 @@ with tf.device('GPU:0' if tf.config.list_physical_devices('GPU') else 'CPU:0'):
         },
     }
 
-    optimizer = Optimizer(config, api_key="KYZajTCAyJ8SglIRMzNAAib73")
+    optimizer = Optimizer(config, api_key="ospb2AMYTC4fka83XrIL3fXdj")
 
     losses = []
-    num_trials = 0
+    num_trials = -1
     for experiment in optimizer.get_experiments(project_name="masterThesis"):
 
         num_trials +=1
@@ -204,7 +232,7 @@ with tf.device('GPU:0' if tf.config.list_physical_devices('GPU') else 'CPU:0'):
             lr_schedule = callbacks.LearningRateScheduler(lambda epoch, lr:
                                                           lr if (epoch + 1) % experiment_hyperparams[
                                                               'scheduled_lr_reduce_patience'] != 0 else
-                                                          lr * experiment_hyperparams['scheduled_reduce_lr_factor'], verbose=1)
+                                                          lr * experiment_hyperparams['scheduled_lr_reduce_factor'], verbose=1)
 
             early_stopping = callbacks.EarlyStopping(monitor='val_loss', patience=experiment_hyperparams['early_stopping_patience'],
                                                      start_from_epoch=7)
@@ -234,11 +262,11 @@ with tf.device('GPU:0' if tf.config.list_physical_devices('GPU') else 'CPU:0'):
         #Log the loss
         loss = history.history['loss'][-1]
         experiment.log_metric("loss", loss)
-
+        losses.append(loss)
         #If loss is best yet, save hyperparameters to a CSV
-        if loss < min(losses):
+        if loss <= min(losses):
             with open(root_dir + "/HyperOpt/" + task + "_" + model_type + "_hyperparamsForLoss_" + str(round(loss,4)) + ".json", 'w') as f:
                 json.dump(experiment_hyperparams,f)
 
-        losses.append(loss)
+
 

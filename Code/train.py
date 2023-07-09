@@ -13,7 +13,9 @@ os.environ["CUDA_VISIBLE_DEVICES"] = "0" # Note: when starting kernel, for gpu_a
 # only reserve 1 GPU
 os.environ['TF_FORCE_GPU_ALLOW_GROWTH']='true'
 
-root_dir = "/Users/ronhochstenbach/Desktop/Thesis"
+#root_dir = "/Users/ronhochstenbach/Desktop/Thesis/Data"
+root_dir = "/content/drive/MyDrive/Thesis/Data"  #when cloning for colab
+
 def initialize_datasets(user_level_data, subjects_split, hyperparams, hyperparams_features, model_type,
                         validation_set, session=None):
 

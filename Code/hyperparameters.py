@@ -1,5 +1,5 @@
-root_dir = "/Users/ronhochstenbach/Desktop/Thesis/Data"
-#root_dir = "/content/drive/MyDrive/Thesis/Data"  #when cloning for colab
+#root_dir = "/Users/ronhochstenbach/Desktop/Thesis/Data"
+root_dir = "/content/drive/MyDrive/Thesis/Data"  #when cloning for colab
 
 import json
 hyperparams_features = {
@@ -17,20 +17,19 @@ hyperparams_features = {
 hyperparams = {
     "trainable_embeddings": True,
 
+    #Structurel
     "lstm_units": 128,
-
     "dense_bow_units": 20,
     "dense_numerical_units": 20,
-
     "lstm_units_user": 32,
 
-    "transfer_units": 20,
-
+    #Self-attention structure
     "num_heads": 3,
     "key_dim": 128,
-    "num_layers":4,
+    "num_layers":2,
     "use_positional_encodings": True,
 
+    #Regularizers
     "dropout": 0.3,             #Appendix uban
     "l2_dense": 0.00001,        #Appendix uban (?)
     "l2_embeddings": 0.00001,   #Appendix uban (?)
@@ -38,19 +37,20 @@ hyperparams = {
 
     "ignore_layer": ["bert_layer"],
 
+    #Training
     "decay": 0.001,
-    "lr": 0.0003,                   #appendix uban 0.0001
-    "reduce_lr_factor": 0.8,        #originally 0.5
-    "reduce_lr_patience": 5,        #originally 55
-    "scheduled_reduce_lr_freq": 5,  #originally: 95
+    "lr": 0.0001,                   #appendix uban 0.0001
+    "reduce_lr_factor": 0.5,        #originally 0.5
+    "reduce_lr_patience": 55,        #originally 55
+    "scheduled_reduce_lr_freq": 95,  #originally: 95
     "scheduled_reduce_lr_factor": 0.5,
     "freeze_patience": 2000,
     "threshold": 0.5,
     "early_stopping_patience": 5,
 
-    "positive_class_weight": 3,     #github history https://github.com/ananana/mental-disorders/commit/8a7f12d470ede3c850eb344c6e53fd660ea32908 (2_
+    "positive_class_weight": 3,     #6.5 = calculated, 2 = uban history
 
-    "maxlen": 512,
+    "maxlen": 256,
     "posts_per_user": None,
     "post_groups_per_user": None,
     "posts_per_group": 50,
