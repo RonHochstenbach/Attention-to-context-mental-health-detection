@@ -4,9 +4,10 @@ from load_save_model import load_saved_model_weights, load_params
 from data_generator import DataGenerator_Base
 from data_loader import load_erisk_data
 
-#root_dir = "/Users/ronhochstenbach/Desktop/Thesis/Data"
-root_dir = "/content/drive/MyDrive/Thesis/Data"  #when cloning for colab
-saved_path = root_dir + '/Saved Models/Self-Harm_HAN_2023-07-07 22:23:15.190456'
+root_dir = "/Users/ronhochstenbach/Desktop/Thesis/Data"
+#root_dir = "/content/drive/MyDrive/Thesis/Data"  #when cloning for colab
+saved_path = root_dir + '/Saved Models/Self-Harm_HAN_2023-07-09 22:30:25.765997'
+
 
 hyperparams, hyperparams_features = load_params(saved_path)
 
@@ -16,7 +17,7 @@ print(f"Running {task} task using the {model_type} model!")
 
 #IMPORT DATA AND CREATE DATAGENERATOR
 writings_df = pd.read_pickle(root_dir + "/Processed Data/tokenized_df_" + task + ".pkl")
-print(writings_df.columns)
+
 #CREATE VOCABULARY, PROCESS DATA, DATAGENERATOR
 user_level_data, subjects_split, vocabulary = load_erisk_data(writings_df,train_prop= 0.95,
                                                            hyperparams_features=hyperparams_features,
@@ -34,6 +35,7 @@ data_generator_test = DataGenerator_Base(user_level_data, subjects_split, set_ty
                                      compute_liwc=True,
                                      ablate_emotions='emotions' in hyperparams['ignore_layer'],
                                      ablate_liwc='liwc' in hyperparams['ignore_layer'])
+
 
 #LOAD MODEL AND EVALUATE
 model = load_saved_model_weights(saved_path, hyperparams, hyperparams_features, model_type, h5=True)

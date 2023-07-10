@@ -87,7 +87,7 @@ def load_stopwords(path):
     stopwords_list = []
     with open(path) as f:
         for line in f:
-            stopwords_list.append(f)
+            stopwords_list.append(line.strip())
     return stopwords_list
 
 def load_embeddings(path, embedding_dim, vocabulary_path):

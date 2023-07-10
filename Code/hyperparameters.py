@@ -1,7 +1,7 @@
-#root_dir = "/Users/ronhochstenbach/Desktop/Thesis/Data"
-root_dir = "/content/drive/MyDrive/Thesis/Data"  #when cloning for colab
+root_dir = "/Users/ronhochstenbach/Desktop/Thesis/Data"
+#root_dir = "/content/drive/MyDrive/Thesis/Data"  #when cloning for colab
 
-import json
+
 hyperparams_features = {
     "max_features": 20002,
     "embedding_dim": 300,
@@ -48,7 +48,7 @@ hyperparams = {
     "threshold": 0.5,
     "early_stopping_patience": 5,
 
-    "positive_class_weight": 3,     #6.5 = calculated, 2 = uban history
+    "positive_class_weight": 2,     #6.5 = calculated, 2 = uban history
 
     "maxlen": 256,
     "posts_per_user": None,

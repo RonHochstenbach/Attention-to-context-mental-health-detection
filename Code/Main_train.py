@@ -20,8 +20,8 @@ from datetime import datetime
 from load_save_model import save_model_and_params
 
 
-#root_dir = "/Users/ronhochstenbach/Desktop/Thesis/Data"
-root_dir = "/content/drive/MyDrive/Thesis/Data"  #when cloning for colab
+root_dir = "/Users/ronhochstenbach/Desktop/Thesis/Data"
+#root_dir = "/content/drive/MyDrive/Thesis/Data"  #when cloning for colab
 
 logger = logging.getLogger('training')
 
