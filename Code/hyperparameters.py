@@ -54,7 +54,7 @@ hyperparams = {
     "posts_per_user": None,
     "post_groups_per_user": None,
     "posts_per_group": 50,
-    "batch_size": 32,   #normally 32
+    "batch_size": 8,   #normally 32
     "padding": "pre",
     "hierarchical": True,
     "sample_seqs": False,

@@ -1,9 +1,10 @@
 import pandas as pd
+import tensorflow as tf
 from nltk.tokenize import TweetTokenizer
 import re
 from collections import Counter
 import pickle
-from transformers import BertTokenizer
+from transformers import TFBertModel, TFRobertaModel
 
 from hyperparameters import hyperparams_features, hyperparams
 from resource_loader import load_NRC, readDict, load_stopwords, load_LIWC
@@ -39,30 +40,6 @@ def shorten_text(text, length):
         return ' '.join(text.split()[:length])
     else:
         return text
-
-def tokenize_fields_bert(writings_df, columns=['title', 'text']):
-    cnt = 0
-    tokenizer = BertTokenizer.from_pretrained('bert-base-uncased', do_lower_case=True)
-    for c in columns:
-        print('Tokenizing ids for %s' % c)
-        writings_df['tokenized_%s_id' % c] = writings_df['%s' % c].apply(lambda t: tokenizer(t,
-                                                                            add_special_tokens=True, max_length=hyperparams['maxlen'],
-                                                                            padding='max_length', truncation=True,
-                                                                            return_attention_mask=True,
-                                                                            return_tensors='tf')['input_ids']
-                                                                if type(t)==str and t else None)
-        print('Tokenizing attention masks for %s' % c)
-        writings_df['tokenized_%s_attnmask' % c] = writings_df['%s' % c].apply(lambda t: tokenizer(t,
-                                                                            add_special_tokens=True, max_length=hyperparams['maxlen'],
-                                                                            padding='max_length', truncation=True,
-                                                                            return_attention_mask=True,
-                                                                            return_tensors='tf')['attention_mask']
-                                                                if type(t)==str and t else None)
-        print('Appending lengths for %s' % c)
-        writings_df['%s_len' % c] = writings_df['tokenized_%s_id' % c].apply(lambda t: len(t)
-                                                                if type(t)==list and t else None)
-
-    return writings_df
 
 def build_vocabulary(writings_df):
     # Build vocabulary
@@ -105,4 +82,31 @@ def feature_sizes():
                    "stopwords_dim": len(stopwords_list)}
 
     return return_dict
+
+def create_embeddings(inputs, model_type):
+
+    ids = inputs[0].numpy()
+    masks = inputs[1].numpy()
+    print(type(ids))
+
+    #extracting the last four hidden states and summing them
+    if model_type == "HAN_BERT":
+        BERT_embedding_layer = TFBertModel.from_pretrained('bert-base-uncased')(
+                                                            ids, attention_mask=masks,
+                                                            output_hidden_states=True, return_dict=True)[
+                                                                                   'hidden_states'][-4:]
+    elif model_type == "HAN_RoBERTa":
+        BERT_embedding_layer = TFRobertaModel.from_pretrained('roberta-base')(
+                                                            ids, attention_mask=masks,
+                                                            output_hidden_states=True, return_dict=True)[
+                                                                                   'hidden_states'][-4:]
+    else:
+        Exception("Unknown model type!")
+
+    embedding = tf.add_n(BERT_embedding_layer)
+
+    return embedding
+
+
+
 

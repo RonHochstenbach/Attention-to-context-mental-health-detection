@@ -92,6 +92,7 @@ def load_erisk_data(writings_df, hyperparams_features, train_prop, by_subset=Tru
     liwc_categories = set(liwc_dict.keys())
 
     training_subjects = list(set(writings_df[writings_df['subset'] == 'train'].subject))
+
     test_subjects = list(set(writings_df[writings_df['subset'] == 'test'].subject))
 
     training_subjects = sorted(training_subjects)  # ensuring reproducibility

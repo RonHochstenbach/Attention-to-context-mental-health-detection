@@ -6,8 +6,7 @@ from data_loader import load_erisk_data
 
 root_dir = "/Users/ronhochstenbach/Desktop/Thesis/Data"
 #root_dir = "/content/drive/MyDrive/Thesis/Data"  #when cloning for colab
-saved_path = root_dir + '/Saved Models/Self-Harm_HAN_2023-07-09 22:30:25.765997'
-
+saved_path = root_dir + '/Saved Models/Old/Self-Harm_HAN_2023-07-09 22:30:25.765997'
 
 hyperparams, hyperparams_features = load_params(saved_path)
 
@@ -19,7 +18,7 @@ print(f"Running {task} task using the {model_type} model!")
 writings_df = pd.read_pickle(root_dir + "/Processed Data/tokenized_df_" + task + ".pkl")
 
 #CREATE VOCABULARY, PROCESS DATA, DATAGENERATOR
-user_level_data, subjects_split, vocabulary = load_erisk_data(writings_df,train_prop= 0.95,
+user_level_data, subjects_split, vocabulary = load_erisk_data(writings_df,train_prop= 1,
                                                            hyperparams_features=hyperparams_features,
                                                            logger=None,by_subset=True)
 

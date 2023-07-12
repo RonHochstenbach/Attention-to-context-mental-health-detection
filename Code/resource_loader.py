@@ -33,7 +33,7 @@ def load_NRC(nrc_path):
             if label:  # if label = 1
                 word_emotions[word].add(emotion)
                 emotion_words[emotion].add(word)
-
+    #print(emotion_words)
     return emotion_words
 
 
@@ -45,6 +45,7 @@ def load_LIWC(path):
         if c not in liwc_dict:
             liwc_dict[c] = []
         liwc_dict[c].append(w)
+    #print(liwc_dict)
     return liwc_dict
 
 def readDict(dictionaryPath):

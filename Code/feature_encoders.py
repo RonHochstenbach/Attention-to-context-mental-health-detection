@@ -26,7 +26,7 @@ def encode_pronouns(tokens, pronouns={"i", "me", "my", "mine", "myself"}, relati
         return nr_pronouns
 
 
-def encode_stopwords(tokens, stopwords_list=None):
+def encode_stopwords(tokens, stopwords_list=None, relative=True):
     if not stopwords_list:
         stopwords_list = stopwords.words("english")
     encoded_stopwords = [0 for s in stopwords_list]
@@ -35,7 +35,10 @@ def encode_stopwords(tokens, stopwords_list=None):
     for i, stopword in enumerate(stopwords_list):
         if stopword in tokens:
             encoded_stopwords[i] += 1
-    return encoded_stopwords
+    if relative and len(tokens)>0:
+        return [stopword / len(tokens) for stopword in encoded_stopwords]
+    else:
+        return encoded_stopwords
 
 
 def encode_liwc_categories_full(tokens, liwc_categories, liwc_words_for_categories, relative=True):
