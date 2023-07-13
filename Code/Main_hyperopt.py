@@ -4,6 +4,7 @@ import pandas as pd
 import os
 import logging
 import json
+from keras import backend as K
 
 import tensorflow as tf
 from collections import Counter
@@ -25,8 +26,8 @@ from datetime import datetime
 from load_save_model import save_model_and_params
 
 
-#root_dir = "/Users/ronhochstenbach/Desktop/Thesis/Data"
-root_dir = "/content/drive/MyDrive/Thesis/Data"  #when cloning for colab
+root_dir = "/Users/ronhochstenbach/Desktop/Thesis/Data"
+#root_dir = "/content/drive/MyDrive/Thesis/Data"  #when cloning for colab
 
 
 logger = logging.getLogger('training')
@@ -50,7 +51,7 @@ print(f"Running Hyperopt for the {task} task using the {model_type} model!")
 writings_df = pd.read_pickle(root_dir + "/Processed Data/tokenized_df_" + task + ".pkl")
 
 #CREATE VOCABULARY, PROCESS DATA, DATAGENERATOR
-user_level_data, subjects_split, vocabulary = load_erisk_data(writings_df,train_prop= 0.7,
+user_level_data, subjects_split, vocabulary = load_erisk_data(writings_df,train_prop= 0.2,
                                                            hyperparams_features=hyperparams_features,
                                                            logger=None, by_subset=True)
 
@@ -59,8 +60,8 @@ print(f"There are {len(user_level_data)} subjects, of which {len(subjects_split[
 with tf.device('GPU:0' if tf.config.list_physical_devices('GPU') else 'CPU:0'):
     print(f"Training on {'GPU:0' if tf.config.list_physical_devices('GPU') else 'CPU:0'}!")
 
-    max_hyperopt_trials = 5
-    tune_epochs = 20
+    max_hyperopt_trials = 2
+    tune_epochs = 2
 
     #Defining the hyperparameter search space and setting up the experiment
     # parameter_space = {
@@ -126,14 +127,14 @@ with tf.device('GPU:0' if tf.config.list_physical_devices('GPU') else 'CPU:0'):
         "algorithm": "bayes",
         "parameters": parameter_space,
         "spec": {
-            "metric": "loss",
+            "metric": "val_loss",
             "objective": "minimize",
         },
     }
 
     optimizer = Optimizer(config, api_key="ospb2AMYTC4fka83XrIL3fXdj")
 
-    losses = []
+    val_losses = []
     num_trials = -1
     for experiment in optimizer.get_experiments(project_name="masterThesis"):
 
@@ -261,11 +262,34 @@ with tf.device('GPU:0' if tf.config.list_physical_devices('GPU') else 'CPU:0'):
 
         #Log the loss
         loss = history.history['loss'][-1]
+        auc = history.history['auc'][-1]
+        precision = history.history['precision'][-1]
+        recall = history.history['recall'][-1]
+        f1 = (2*precision*recall)/(precision+recall+K.epsilon())
+
+        val_loss = history.history['val_loss'][-1]
+        val_auc = history.history['val_auc'][-1]
+        val_precision = history.history['val_precision'][-1]
+        val_recall = history.history['val_recall'][-1]
+        val_f1 = (2 * val_precision * val_recall) / (val_precision + val_recall + K.epsilon())
+
         experiment.log_metric("loss", loss)
-        losses.append(loss)
+        experiment.log_metric("auc", auc)
+        experiment.log_metric("precision", precision)
+        experiment.log_metric("recall", recall)
+        experiment.log_metric("f1", f1)
+
+        experiment.log_metric("val_loss", val_loss)
+        experiment.log_metric("val_auc", val_auc)
+        experiment.log_metric("val_precision", val_precision)
+        experiment.log_metric("val_recall", val_recall)
+        experiment.log_metric("val_f1", val_f1)
+
+        val_losses.append(val_loss)
         #If loss is best yet, save hyperparameters to a CSV
-        if loss <= min(losses):
-            with open(root_dir + "/HyperOpt/" + task + "_" + model_type + "_hyperparamsForLoss_" + str(round(loss,4)) + ".json", 'w') as f:
+        if val_loss <= min(val_losses):
+            del experiment_hyperparams['optimizer']
+            with open(root_dir + "/HyperOpt/" + task + "_" + model_type + "_hyperparamsForLoss_" + str(round(val_loss,4)) + ".json", 'w') as f:
                 json.dump(experiment_hyperparams,f)
 
 
