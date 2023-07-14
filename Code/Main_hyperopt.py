@@ -144,7 +144,7 @@ with tf.device('GPU:0' if tf.config.list_physical_devices('GPU') else 'CPU:0'):
             break
         #If more than 5 trials done and loss hasnt improved in the last 5 trials, break
         if num_trials > 5:
-            if all(element >= min(losses) for element in losses[-5:]):
+            if all(element >= min(val_losses) for element in val_losses[-5:]):
                 break
 
         experiment.add_tag("tune")
@@ -160,6 +160,7 @@ with tf.device('GPU:0' if tf.config.list_physical_devices('GPU') else 'CPU:0'):
         experiment_hyperparams['optimizer'] = optimizers.legacy.Adam(learning_rate=experiment_hyperparams['lr'],
                                                                      decay=experiment_hyperparams['decay'])
 
+        print(experiment_hyperparams)
 
         # Create DataGenerators
         if model_type == "HAN" or model_type == "HSAN":
@@ -261,16 +262,27 @@ with tf.device('GPU:0' if tf.config.list_physical_devices('GPU') else 'CPU:0'):
             continue
 
         #Log the loss
-        loss = history.history['loss'][-1]
-        auc = history.history['auc'][-1]
-        precision = history.history['precision'][-1]
-        recall = history.history['recall'][-1]
-        f1 = (2*precision*recall)/(precision+recall+K.epsilon())
+        if num_trials == 0:
+            auc = history.history['auc'][-1]
+            precision = history.history['precision'][-1]
+            recall = history.history['recall'][-1]
 
+            val_auc = history.history['val_auc'][-1]
+            val_precision = history.history['val_precision'][-1]
+            val_recall = history.history['val_recall'][-1]
+
+        else:
+            auc = history.history['auc_'+str(num_trials)][-1]
+            precision = history.history['precision_'+str(num_trials)][-1]
+            recall = history.history['recall_'+str(num_trials)][-1]
+
+            val_auc = history.history['val_auc_'+str(num_trials)][-1]
+            val_precision = history.history['val_precision_'+str(num_trials)][-1]
+            val_recall = history.history['val_recall_'+str(num_trials)][-1]
+
+        loss = history.history['loss'][-1]
         val_loss = history.history['val_loss'][-1]
-        val_auc = history.history['val_auc'][-1]
-        val_precision = history.history['val_precision'][-1]
-        val_recall = history.history['val_recall'][-1]
+        f1 = (2 * precision * recall) / (precision + recall + K.epsilon())
         val_f1 = (2 * val_precision * val_recall) / (val_precision + val_recall + K.epsilon())
 
         experiment.log_metric("loss", loss)
@@ -286,11 +298,9 @@ with tf.device('GPU:0' if tf.config.list_physical_devices('GPU') else 'CPU:0'):
         experiment.log_metric("val_f1", val_f1)
 
         val_losses.append(val_loss)
+
         #If loss is best yet, save hyperparameters to a CSV
         if val_loss <= min(val_losses):
             del experiment_hyperparams['optimizer']
             with open(root_dir + "/HyperOpt/" + task + "_" + model_type + "_hyperparamsForLoss_" + str(round(val_loss,4)) + ".json", 'w') as f:
                 json.dump(experiment_hyperparams,f)
-
-
-
