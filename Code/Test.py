@@ -12,6 +12,7 @@ from resource_loader import load_LIWC, load_NRC
 root_dir = "/Users/ronhochstenbach/Desktop/Thesis/Data"
 
 task = "Self-Harm"
+print("test")
 
 writings_df = pd.read_pickle(root_dir + "/Processed Data/tokenized_df_" + task + ".pkl")
 # print(writings_df.keys())

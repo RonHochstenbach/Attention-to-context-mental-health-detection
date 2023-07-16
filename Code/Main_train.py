@@ -42,6 +42,15 @@ task = "Anorexia"                     #"Self-Harm" - "Anorexia" - "Depression"
 model_type = "HAN_BERT"                #"HAN" - "HAN_BERT" - "HAN_RoBERTa" - "HSAN"
 print(f"Running {task} task using the {model_type} model!")
 
+continue_from_saved = True
+saved_path = root_dir + '/Saved Models/Old/Self-Harm_HAN_2023-07-09 22:30:25.765997'
+
+if continue_from_saved:
+    start_epoch = 5
+else:
+    start_epoch = 0
+
+
 save = True
 if save:
     print("Model will be saved!")
@@ -77,11 +86,12 @@ with tf.device('GPU:0' if tf.config.list_physical_devices('GPU') else 'CPU:0'):
 
 
     model, history = train(user_level_data, subjects_split, save, store_path,
+                           continue_from_saved, saved_path,
           hyperparams=hyperparams, hyperparams_features=hyperparams_features,
           epochs = 15,
           dataset_type=task,
           model_type=model_type,
-          validation_set='valid',start_epoch=0)
+          validation_set='valid',start_epoch=start_epoch)
 
     if save:
         logger.info("Saving model...\n")

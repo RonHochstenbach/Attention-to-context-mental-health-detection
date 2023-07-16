@@ -173,6 +173,7 @@ def train_model(model, hyperparams, save, store_path,
 
 
 def train(user_level_data, subjects_split, save, store_path,
+          continue_from_saved, saved_path,
           hyperparams, hyperparams_features,
           dataset_type,
           model_type,
@@ -208,6 +209,10 @@ def train(user_level_data, subjects_split, save, store_path,
 
         model = initialize_model(hyperparams, hyperparams_features, model_type,
                                     session=session, transfer=transfer_layer)
+
+        if continue_from_saved:
+            print("Loading saved model weights!")
+            model.load_weights(saved_path+'_weights.h5', by_name=True)
 
         print(model_path)
         logger.info("Training model...\n")
