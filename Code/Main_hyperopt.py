@@ -51,7 +51,7 @@ print(f"Running Hyperopt for the {task} task using the {model_type} model!")
 writings_df = pd.read_pickle(root_dir + "/Processed Data/tokenized_df_" + task + ".pkl")
 
 #CREATE VOCABULARY, PROCESS DATA, DATAGENERATOR
-user_level_data, subjects_split, vocabulary = load_erisk_data(writings_df,train_prop= 0.2,
+user_level_data, subjects_split, vocabulary = load_erisk_data(writings_df,train_prop= 0.7,
                                                            hyperparams_features=hyperparams_features,
                                                            logger=None, by_subset=True)
 
@@ -60,8 +60,8 @@ print(f"There are {len(user_level_data)} subjects, of which {len(subjects_split[
 with tf.device('GPU:0' if tf.config.list_physical_devices('GPU') else 'CPU:0'):
     print(f"Training on {'GPU:0' if tf.config.list_physical_devices('GPU') else 'CPU:0'}!")
 
-    max_hyperopt_trials = 2
-    tune_epochs = 2
+    max_hyperopt_trials = 10
+    tune_epochs = 15
 
     #Defining the hyperparameter search space and setting up the experiment
     # parameter_space = {
@@ -135,6 +135,7 @@ with tf.device('GPU:0' if tf.config.list_physical_devices('GPU') else 'CPU:0'):
     optimizer = Optimizer(config, api_key="ospb2AMYTC4fka83XrIL3fXdj")
 
     val_losses = []
+    best_hyperparams = {}
     num_trials = -1
     for experiment in optimizer.get_experiments(project_name="masterThesis"):
 
@@ -304,3 +305,8 @@ with tf.device('GPU:0' if tf.config.list_physical_devices('GPU') else 'CPU:0'):
             del experiment_hyperparams['optimizer']
             with open(root_dir + "/HyperOpt/" + task + "_" + model_type + "_hyperparamsForLoss_" + str(round(val_loss,4)) + ".json", 'w') as f:
                 json.dump(experiment_hyperparams,f)
+            best_hyperparams = experiment_hyperparams
+
+print(f"Best loss was {min(val_losses)}!")
+print("Best hyperparameters:")
+print(best_hyperparams)
