@@ -160,6 +160,7 @@ def train_model(model, hyperparams, save, save_epoch, store_path,
 
     if save_epoch:
         save_epoch_path = store_path + "_{epoch:02d}.hdf5"
+        print(f"Saving each epoch at {save_epoch_path}")
         callbacks_dict['save_per_epoch'] = keras.callbacks.ModelCheckpoint(save_epoch_path, monitor='val_loss', verbose=1,
                                                 save_best_only=False, save_weights_only=True, mode='auto', save_freq='epoch')
 
@@ -177,7 +178,7 @@ def train_model(model, hyperparams, save, save_epoch, store_path,
     return model, history
 
 
-def train(user_level_data, subjects_split, save, store_path,
+def train(user_level_data, subjects_split, save, save_epoch, store_path,
           continue_from_saved, saved_path,
           hyperparams, hyperparams_features,
           dataset_type,
@@ -222,10 +223,12 @@ def train(user_level_data, subjects_split, save, store_path,
         print(model_path)
         logger.info("Training model...\n")
 
-        model, history = train_model(model, hyperparams, save, store_path,
+        model, history = train_model(model, hyperparams, save, save_epoch, store_path,
                                      data_generator_train, data_generator_valid,
                                      epochs=epochs, start_epoch=start_epoch,
                                      class_weight={0: 1, 1: hyperparams['positive_class_weight']},
                                      model_path=model_path, workers=1,
                                      validation_set=validation_set)
         return model, history
+
+

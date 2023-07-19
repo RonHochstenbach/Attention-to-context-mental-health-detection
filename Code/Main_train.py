@@ -49,6 +49,9 @@ else:
     print("Model will NOT be saved!")
 save_epoch = False
 
+continue_from_saved = False
+saved_path =''
+
 # if (model_type == "HAN_BERT" or model_type == "HAN_RoBERTa") and hyperparams['batch_size'] > 9:
 #     raise Warning("WILL PROBABLY RESULT IN OOM ISSUES!")
 
@@ -78,11 +81,12 @@ with tf.device('GPU:0' if tf.config.list_physical_devices('GPU') else 'CPU:0'):
 
 
     model, history = train(user_level_data, subjects_split, save, save_epoch, store_path,
-          hyperparams=hyperparams, hyperparams_features=hyperparams_features,
-          epochs = 6,
-          dataset_type=task,
-          model_type=model_type,
-          validation_set='valid',start_epoch=0)
+                              continue_from_saved, saved_path,
+                              hyperparams=hyperparams, hyperparams_features=hyperparams_features,
+                              epochs = 6,
+                              dataset_type=task,
+                              model_type=model_type,
+                              validation_set='valid',start_epoch=0)
 
     if save:
         logger.info("Saving model...\n")
