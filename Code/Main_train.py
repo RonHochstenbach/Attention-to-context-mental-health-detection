@@ -39,7 +39,7 @@ hyperparams['optimizer'] = optimizers.legacy.Adam(learning_rate=hyperparams['lr'
 
 #IMPORT DATA
 task = "Anorexia"                     #"Self-Harm" - "Anorexia" - "Depression"
-model_type = "HAN_BERT"                #"HAN" - "HAN_BERT" - "HAN_RoBERTa" - "HSAN"
+model_type = "HSAN"                #"HAN" - "HAN_BERT" - "HAN_RoBERTa" - "HSAN"
 print(f"Running {task} task using the {model_type} model!")
 
 save = True
@@ -47,9 +47,10 @@ if save:
     print("Model will be saved!")
 else:
     print("Model will NOT be saved!")
+save_epoch = False
 
-if (model_type == "HAN_BERT" or model_type == "HAN_RoBERTa") and hyperparams['batch_size'] > 9:
-    raise Warning("WILL PROBABLY RESULT IN OOM ISSUES!")
+# if (model_type == "HAN_BERT" or model_type == "HAN_RoBERTa") and hyperparams['batch_size'] > 9:
+#     raise Warning("WILL PROBABLY RESULT IN OOM ISSUES!")
 
 # writings_df = pd.read_pickle(root_dir + "/Processed Data/df_" + task + ".pkl")
 # writings_df = tokenize_fields_bert(writings_df, columns=['text', 'title'])
@@ -76,9 +77,9 @@ with tf.device('GPU:0' if tf.config.list_physical_devices('GPU') else 'CPU:0'):
 
 
 
-    model, history = train(user_level_data, subjects_split, save, store_path,
+    model, history = train(user_level_data, subjects_split, save, save_epoch, store_path,
           hyperparams=hyperparams, hyperparams_features=hyperparams_features,
-          epochs = 15,
+          epochs = 6,
           dataset_type=task,
           model_type=model_type,
           validation_set='valid',start_epoch=0)

@@ -116,7 +116,7 @@ def initialize_model(hyperparams, hyperparams_features, model_type,
     return model
 
 
-def train_model(model, hyperparams, save, store_path,
+def train_model(model, hyperparams, save, save_epoch, store_path,
                 data_generator_train, data_generator_valid,
                 epochs, class_weight, start_epoch=0, workers=multiprocessing.cpu_count(),
                 callback_list=[], logger=None,
@@ -157,6 +157,11 @@ def train_model(model, hyperparams, save, store_path,
 
     if save:
         callbacks_dict['csv_logger'] = keras.callbacks.CSVLogger(store_path + 'metricHistory.csv',separator=",",append=True)
+
+    if save_epoch:
+        save_epoch_path = store_path + "_{epoch:02d}.hdf5"
+        callbacks_dict['save_per_epoch'] = keras.callbacks.ModelCheckpoint(save_epoch_path, monitor='val_loss', verbose=1,
+                                                save_best_only=False, save_weights_only=True, mode='auto', save_freq='epoch')
 
     logging.info('Train...\n')
 

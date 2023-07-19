@@ -4,7 +4,8 @@ from load_save_model import load_saved_model_weights, load_params
 from data_generator import DataGenerator_Base
 from data_loader import load_erisk_data
 
-root_dir = "/Users/ronhochstenbach/Desktop/Thesis/Data"
+#root_dir = "/Users/ronhochstenbach/Desktop/Thesis/Data"
+root_dir = "/content/drive/MyDrive/Thesis/Data"  #when cloning for colab
 #root_dir = "/content/drive/MyDrive/Thesis/Data"  #when cloning for colab
 saved_path = root_dir + '/Saved Models/Old/Self-Harm_HAN_2023-07-09 22:30:25.765997'
 

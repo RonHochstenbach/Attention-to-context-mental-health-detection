@@ -1,4 +1,5 @@
 import tensorflow as tf
+import torch
 from keras.models import Model
 from keras.layers import Dense, Dropout, Embedding, LSTM, Lambda, BatchNormalization, TimeDistributed, \
     Input, concatenate, Flatten, RepeatVector, Activation, Multiply, Permute, MultiHeadAttention
@@ -168,10 +169,15 @@ def build_HAN_BERT(hyperparams, hyperparams_features, model_type,
 
     #extracting the last four hidden states and summing them
     if model_type == "HAN_BERT":
-        BERT_embedding_layer = TFBertModel.from_pretrained('bert-small')(
+        # BERT_embedding_layer = TFBertModel.from_pretrained('bert-base-uncased')(
+        #                                                     tokens_features_ids, attention_mask=tokens_features_attnmasks,
+        #                                                     output_hidden_states=True, return_dict=True)[
+        #                                                                            'hidden_states'][-4:]
+        BERT_embedding_layer = TFBertModel.from_pretrained("prajjwal1/bert-tiny", from_pt=True)(
                                                             tokens_features_ids, attention_mask=tokens_features_attnmasks,
                                                             output_hidden_states=True, return_dict=True)[
                                                                                    'hidden_states'][-4:]
+
     elif model_type == "HAN_RoBERTa":
         BERT_embedding_layer = TFRobertaModel.from_pretrained('roberta-base')(
                                                             tokens_features_ids, attention_mask=tokens_features_attnmasks,
@@ -464,7 +470,7 @@ def build_HSAN(hyperparams, hyperparams_features,
 
     return hierarchical_model
 
-def build_HAN_BERT_test(hyperparams, hyperparams_features, model_type,
+def build_HAN_BERT_TEST(hyperparams, hyperparams_features, model_type,
                              emotions_dim, stopwords_list_dim, liwc_categories_dim,
                              ignore_layer=[]):
 

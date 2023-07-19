@@ -45,7 +45,7 @@ hyperparams['optimizer'] = optimizers.legacy.Adam(learning_rate=hyperparams['lr'
 
 #IMPORT DATA
 task = "Self-Harm"                #"Self-Harm" - "Anorexia" - "Depression"
-model_type = "HAN"                #"HAN" - "HAN_BERT" - "HAN_RoBERTa" - "HSAN"
+model_type = "HSAN"                #"HAN" - "HAN_BERT" - "HAN_RoBERTa" - "HSAN"
 print(f"Running Hyperopt for the {task} task using the {model_type} model!")
 
 writings_df = pd.read_pickle(root_dir + "/Processed Data/tokenized_df_" + task + ".pkl")
@@ -60,8 +60,8 @@ print(f"There are {len(user_level_data)} subjects, of which {len(subjects_split[
 with tf.device('GPU:0' if tf.config.list_physical_devices('GPU') else 'CPU:0'):
     print(f"Training on {'GPU:0' if tf.config.list_physical_devices('GPU') else 'CPU:0'}!")
 
-    max_hyperopt_trials = 10
-    tune_epochs = 15
+    max_hyperopt_trials = 9
+    tune_epochs = 10
 
     #Defining the hyperparameter search space and setting up the experiment
     # parameter_space = {
@@ -95,13 +95,13 @@ with tf.device('GPU:0' if tf.config.list_physical_devices('GPU') else 'CPU:0'):
         "lstm_units_user": {"type": "discrete", "values": [32]},                                        # Fixed
         "dense_bow_units": {"type": "discrete", "values": [20]},                                        # Fixed
         "dense_numerical_units": {"type": "discrete", "values": [20]},  # Fixed
-        "lr": {"type": "discrete", "values": [0.0001]},
+        "lr": {"type": "float", "min": 0.00005, "max": 0.001, "scalingType": "loguniform"},
         "l2_dense": {"type": "discrete", "values": [0.00001]},
         "l2_embeddings": {"type": "discrete", "values": [0.00001]},
         "dropout": {"type": "discrete", "values": [0.3]},
         "norm_momentum": {"type": "discrete", "values": [0.1]},
         "batch_size": {"type": "discrete", "values" :[32]},           #ADAPT BASED ON ALGO AND WHERE RUNNING!
-        "positive_class_weight": {"type": "integer", "min": 2, "max": 10},
+        "positive_class_weight": {"type": "discrete", "values" :[2]},
         "trainable_embeddings": {"type": "discrete", "values": [True]},
         "sample_seqs": {"type": "discrete", "values": [False]},
         "freeze_patience": {"type": "discrete", "values": [2000]},
@@ -118,9 +118,9 @@ with tf.device('GPU:0' if tf.config.list_physical_devices('GPU') else 'CPU:0'):
 
     #Add hyperparams specific to HSAN
     if model_type == "HSAN":
-        parameter_space["num_heads"] = {"type": "integer", "min": 1, "max": 5}
-        parameter_space["key_dim"] = {"type": "integer", "min": 30, "max": 300}
-        parameter_space["num_layers"] = {"type": "integer", "min": 1, "max": 5}
+        parameter_space["num_heads"] = {"type": "integer", "min": 1, "max": 4}
+        parameter_space["key_dim"] = {"type": "integer", "min": 30, "max": 200}
+        parameter_space["num_layers"] = {"type": "integer", "min": 1, "max": 4}
         parameter_space["use_positional_encodings"] = {"type": "discrete", "values": [True, False]}
 
     config = {

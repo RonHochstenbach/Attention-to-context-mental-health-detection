@@ -25,7 +25,7 @@ hyperparams = {
 
     #Self-attention structure
     "num_heads": 3,
-    "key_dim": 128,
+    "key_dim": 150,
     "num_layers":2,
     "use_positional_encodings": True,
 
@@ -39,7 +39,7 @@ hyperparams = {
 
     #Training
     "decay": 0.001,
-    "lr": 0.0001,                   #appendix uban 0.0001
+    "lr": 0.0005,                   #appendix uban 0.0001 (han etc, 0.0005 hsan)
     "reduce_lr_factor": 0.5,        #originally 0.5
     "reduce_lr_patience": 55,        #originally 55
     "scheduled_reduce_lr_freq": 95,  #originally: 95
@@ -48,13 +48,13 @@ hyperparams = {
     "threshold": 0.5,
     "early_stopping_patience": 5,
 
-    "positive_class_weight": 2,     #6.5 = calculated, 2 = uban history
+    "positive_class_weight": 2,     #6.5 = calculated, 2 = uban history & own hyperopt
 
     "maxlen": 256,
     "posts_per_user": None,
     "post_groups_per_user": None,
     "posts_per_group": 50,
-    "batch_size": 8,   #normally 32
+    "batch_size": 32,   #normally 32
     "padding": "pre",
     "hierarchical": True,
     "sample_seqs": False,
