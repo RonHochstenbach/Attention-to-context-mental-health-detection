@@ -38,8 +38,8 @@ hyperparams['optimizer'] = optimizers.legacy.Adam(learning_rate=hyperparams['lr'
                                                   decay = hyperparams['decay'])
 
 #IMPORT DATA
-task = "Anorexia"                     #"Self-Harm" - "Anorexia" - "Depression"
-model_type = "HSAN"                #"HAN" - "HAN_BERT" - "HAN_RoBERTa" - "HSAN"
+task = "Self-Harm"                     #"Self-Harm" - "Anorexia" - "Depression"
+model_type = "HAN_BERT"                #"HAN" - "HAN_BERT" - "HAN_RoBERTa" - "HSAN"
 print(f"Running {task} task using the {model_type} model!")
 
 save = True
@@ -47,10 +47,9 @@ if save:
     print("Model will be saved!")
 else:
     print("Model will NOT be saved!")
-save_epoch = False
-
+save_epoch = True
 continue_from_saved = False
-saved_path =''
+saved_path ='/Users/ronhochstenbach/Downloads/Self-Harm_HAN_BERT_2023-07-19 14_49_06.363614_03.hdf5'
 
 # if (model_type == "HAN_BERT" or model_type == "HAN_RoBERTa") and hyperparams['batch_size'] > 9:
 #     raise Warning("WILL PROBABLY RESULT IN OOM ISSUES!")
@@ -78,12 +77,10 @@ with tf.device('GPU:0' if tf.config.list_physical_devices('GPU') else 'CPU:0'):
                                                                      validation_set='valid')
 
 
-
-
     model, history = train(user_level_data, subjects_split, save, save_epoch, store_path,
                               continue_from_saved, saved_path,
                               hyperparams=hyperparams, hyperparams_features=hyperparams_features,
-                              epochs = 6,
+                              epochs = 10,
                               dataset_type=task,
                               model_type=model_type,
                               validation_set='valid',start_epoch=0)

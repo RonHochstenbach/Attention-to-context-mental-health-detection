@@ -16,6 +16,7 @@ hyperparams_features = {
 
 hyperparams = {
     "trainable_embeddings": True,
+    "sum_layers": 1,
 
     #Structurel
     "lstm_units": 128,

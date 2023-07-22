@@ -218,7 +218,7 @@ def train(user_level_data, subjects_split, save, save_epoch, store_path,
 
         if continue_from_saved:
             print("Loading saved model weights!")
-            model.load_weights(saved_path+'_weights.h5', by_name=True)
+            model.load_weights(saved_path, by_name=False)
 
         print(model_path)
         logger.info("Training model...\n")

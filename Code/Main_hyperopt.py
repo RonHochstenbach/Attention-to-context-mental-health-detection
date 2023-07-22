@@ -45,7 +45,7 @@ hyperparams['optimizer'] = optimizers.legacy.Adam(learning_rate=hyperparams['lr'
 
 #IMPORT DATA
 task = "Self-Harm"                #"Self-Harm" - "Anorexia" - "Depression"
-model_type = "HSAN"                #"HAN" - "HAN_BERT" - "HAN_RoBERTa" - "HSAN"
+model_type = "HAN_BERT"                #"HAN" - "HAN_BERT" - "HAN_RoBERTa" - "HSAN"
 print(f"Running Hyperopt for the {task} task using the {model_type} model!")
 
 writings_df = pd.read_pickle(root_dir + "/Processed Data/tokenized_df_" + task + ".pkl")
@@ -60,7 +60,7 @@ print(f"There are {len(user_level_data)} subjects, of which {len(subjects_split[
 with tf.device('GPU:0' if tf.config.list_physical_devices('GPU') else 'CPU:0'):
     print(f"Training on {'GPU:0' if tf.config.list_physical_devices('GPU') else 'CPU:0'}!")
 
-    max_hyperopt_trials = 9
+    max_hyperopt_trials = 8
     tune_epochs = 10
 
     #Defining the hyperparameter search space and setting up the experiment
@@ -122,6 +122,9 @@ with tf.device('GPU:0' if tf.config.list_physical_devices('GPU') else 'CPU:0'):
         parameter_space["key_dim"] = {"type": "integer", "min": 30, "max": 200}
         parameter_space["num_layers"] = {"type": "integer", "min": 1, "max": 4}
         parameter_space["use_positional_encodings"] = {"type": "discrete", "values": [True, False]}
+
+    if model_type == "HAN_BERT":
+        parameter_space["sum_layers"] = {"type": "integer", "min": 1, "max": 4}
 
     config = {
         "algorithm": "bayes",
@@ -257,55 +260,60 @@ with tf.device('GPU:0' if tf.config.list_physical_devices('GPU') else 'CPU:0'):
                                 callbacks=callbacks_dict.values(),
                                 use_multiprocessing=False)
 
+            # Log the loss
+            if num_trials == 0:
+                auc = history.history['auc'][-1]
+                precision = history.history['precision'][-1]
+                recall = history.history['recall'][-1]
+
+                val_auc = history.history['val_auc'][-1]
+                val_precision = history.history['val_precision'][-1]
+                val_recall = history.history['val_recall'][-1]
+
+            else:
+                auc = history.history['auc_' + str(num_trials)][-1]
+                precision = history.history['precision_' + str(num_trials)][-1]
+                recall = history.history['recall_' + str(num_trials)][-1]
+
+                val_auc = history.history['val_auc_' + str(num_trials)][-1]
+                val_precision = history.history['val_precision_' + str(num_trials)][-1]
+                val_recall = history.history['val_recall_' + str(num_trials)][-1]
+
+            loss = history.history['loss'][-1]
+            val_loss = history.history['val_loss'][-1]
+            f1 = (2 * precision * recall) / (precision + recall + K.epsilon())
+            val_f1 = (2 * val_precision * val_recall) / (val_precision + val_recall + K.epsilon())
+
+            experiment.log_metric("loss", loss)
+            experiment.log_metric("auc", auc)
+            experiment.log_metric("precision", precision)
+            experiment.log_metric("recall", recall)
+            experiment.log_metric("f1", f1)
+
+            experiment.log_metric("val_loss", val_loss)
+            experiment.log_metric("val_auc", val_auc)
+            experiment.log_metric("val_precision", val_precision)
+            experiment.log_metric("val_recall", val_recall)
+            experiment.log_metric("val_f1", val_f1)
+
+            val_losses.append(val_loss)
+
+            # If loss is best yet, save hyperparameters to a CSV
+            if val_loss <= min(val_losses):
+                del experiment_hyperparams['optimizer']
+                with open(root_dir + "/HyperOpt/" + task + "_" + model_type + "_hyperparamsForLoss_" + str(
+                        round(val_loss, 4)) + ".json", 'w') as f:
+                    json.dump(experiment_hyperparams, f)
+                best_hyperparams = experiment_hyperparams
+
         #Continue if Resource exhausted error
         except tf.errors.ResourceExhaustedError as e:
+            print("Resource Error, continuing next try!")
             print(e)
             continue
-
-        #Log the loss
-        if num_trials == 0:
-            auc = history.history['auc'][-1]
-            precision = history.history['precision'][-1]
-            recall = history.history['recall'][-1]
-
-            val_auc = history.history['val_auc'][-1]
-            val_precision = history.history['val_precision'][-1]
-            val_recall = history.history['val_recall'][-1]
-
-        else:
-            auc = history.history['auc_'+str(num_trials)][-1]
-            precision = history.history['precision_'+str(num_trials)][-1]
-            recall = history.history['recall_'+str(num_trials)][-1]
-
-            val_auc = history.history['val_auc_'+str(num_trials)][-1]
-            val_precision = history.history['val_precision_'+str(num_trials)][-1]
-            val_recall = history.history['val_recall_'+str(num_trials)][-1]
-
-        loss = history.history['loss'][-1]
-        val_loss = history.history['val_loss'][-1]
-        f1 = (2 * precision * recall) / (precision + recall + K.epsilon())
-        val_f1 = (2 * val_precision * val_recall) / (val_precision + val_recall + K.epsilon())
-
-        experiment.log_metric("loss", loss)
-        experiment.log_metric("auc", auc)
-        experiment.log_metric("precision", precision)
-        experiment.log_metric("recall", recall)
-        experiment.log_metric("f1", f1)
-
-        experiment.log_metric("val_loss", val_loss)
-        experiment.log_metric("val_auc", val_auc)
-        experiment.log_metric("val_precision", val_precision)
-        experiment.log_metric("val_recall", val_recall)
-        experiment.log_metric("val_f1", val_f1)
-
-        val_losses.append(val_loss)
-
-        #If loss is best yet, save hyperparameters to a CSV
-        if val_loss <= min(val_losses):
-            del experiment_hyperparams['optimizer']
-            with open(root_dir + "/HyperOpt/" + task + "_" + model_type + "_hyperparamsForLoss_" + str(round(val_loss,4)) + ".json", 'w') as f:
-                json.dump(experiment_hyperparams,f)
-            best_hyperparams = experiment_hyperparams
+        except:
+            print("Another Error, continuing next try!")
+            continue
 
 print(f"Best loss was {min(val_losses)}!")
 print("Best hyperparameters:")

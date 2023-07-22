@@ -173,10 +173,10 @@ def build_HAN_BERT(hyperparams, hyperparams_features, model_type,
         #                                                     tokens_features_ids, attention_mask=tokens_features_attnmasks,
         #                                                     output_hidden_states=True, return_dict=True)[
         #                                                                            'hidden_states'][-4:]
-        BERT_embedding_layer = TFBertModel.from_pretrained("prajjwal1/bert-tiny", from_pt=True)(
+        BERT_embedding_layer = TFBertModel.from_pretrained("prajjwal1/bert-mini", from_pt=True)(
                                                             tokens_features_ids, attention_mask=tokens_features_attnmasks,
                                                             output_hidden_states=True, return_dict=True)[
-                                                                                   'hidden_states'][-4:]
+                                                                                   'hidden_states'][-hyperparams['sum_layers']:]
 
     elif model_type == "HAN_RoBERTa":
         BERT_embedding_layer = TFRobertaModel.from_pretrained('roberta-base')(
