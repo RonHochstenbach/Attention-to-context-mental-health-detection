@@ -8,15 +8,15 @@ from metrics_decision_based import evaluate_for_subjects
 root_dir = "/Users/ronhochstenbach/Desktop/Thesis/Data"
 #root_dir = "/content/drive/MyDrive/Thesis/Data"  #when cloning for colab
 
-saved_path = '/Users/ronhochstenbach/Desktop/Thesis/Data/Saved Models/Self-Harm_HSAN_2023-07-20 21:01:52.538001'
+saved_path = '/Users/ronhochstenbach/Desktop/Thesis/Data/Saved Models/Final Trained Models (10 epochs)/Self-Harm/Self-Harm_HAN_TinyBERT_2023-07-25 08:59:24.586245'
 
 hyperparams, hyperparams_features = load_params(saved_path)
 
 task = "Self-Harm"          #"Self-Harm" - "Anorexia" - "Depression"
-model_type = "HSAN"          #"HAN" - "HAN_BERT"
+model_type = "HAN_BERT"          #"HAN" - "HAN_BERT"
 print(f"Running {task} task using the {model_type} model!")
 
-analysis_type = "Custom"  #"Custom" or "Keras"
+analysis_type = "Keras"  #"Custom" or "Keras"
 
 #IMPORT DATA AND CREATE DATAGENERATOR
 writings_df = pd.read_pickle(root_dir + "/Processed Data/tokenized_df_" + task + ".pkl")

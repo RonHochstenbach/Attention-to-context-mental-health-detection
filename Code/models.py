@@ -9,7 +9,7 @@ from keras import backend as K
 from keras.metrics import AUC, Precision, Recall
 from metrics import Metrics
 from resource_loader import load_embeddings
-from transformers import TFBertModel, TFRobertaModel
+from transformers import TFBertModel, TFRobertaModel, TFAlbertModel
 from auxilliary_functions import create_embeddings
 
 
@@ -173,10 +173,14 @@ def build_HAN_BERT(hyperparams, hyperparams_features, model_type,
         #                                                     tokens_features_ids, attention_mask=tokens_features_attnmasks,
         #                                                     output_hidden_states=True, return_dict=True)[
         #                                                                            'hidden_states'][-4:]
-        BERT_embedding_layer = TFBertModel.from_pretrained("prajjwal1/bert-mini", from_pt=True)(
+        BERT_embedding_layer = TFBertModel.from_pretrained("prajjwal1/bert-tiny", from_pt=True)(
                                                             tokens_features_ids, attention_mask=tokens_features_attnmasks,
                                                             output_hidden_states=True, return_dict=True)[
                                                                                    'hidden_states'][-hyperparams['sum_layers']:]
+        # BERT_embedding_layer = TFAlbertModel.from_pretrained("albert-base-v2", from_pt=True)(
+        #                                                 tokens_features_ids, attention_mask=tokens_features_attnmasks,
+        #                                                 output_hidden_states=True, return_dict=True)[
+        #                                                                        'hidden_states'][-hyperparams['sum_layers']:]
 
     elif model_type == "HAN_RoBERTa":
         BERT_embedding_layer = TFRobertaModel.from_pretrained('roberta-base')(
@@ -239,7 +243,9 @@ def build_HAN_BERT(hyperparams, hyperparams_features, model_type,
                         outputs=sent_representation, name='sentEncoder')
 
     #Set BERT/RoBERTa model to non-trainable
-    [setattr(layer, 'trainable', False) for layer in sentEncoder.layers if layer._name == 'tf_bert_model' or layer._name == 'tf_roberta_model']
+    if not hyperparams['trainable_bert_layer']:
+        [setattr(layer, 'trainable', False) for layer in sentEncoder.layers if layer._name == 'tf_bert_model'
+         or layer._name == 'tf_roberta_model' or layer._name == 'tf_albert_model']
 
     sentEncoder.summary()
 
@@ -470,7 +476,7 @@ def build_HSAN(hyperparams, hyperparams_features,
 
     return hierarchical_model
 
-def build_HAN_BERT_TEST(hyperparams, hyperparams_features, model_type,
+def build_Context_HAN(hyperparams, hyperparams_features,
                              emotions_dim, stopwords_list_dim, liwc_categories_dim,
                              ignore_layer=[]):
 
@@ -479,20 +485,13 @@ def build_HAN_BERT_TEST(hyperparams, hyperparams_features, model_type,
     tokens_features_attnmasks = Input(shape=(hyperparams['maxlen'],), name='word_seq_attnmasks',dtype=tf.int32)
 
     #extracting the last four hidden states and summing them
-    # if model_type == "HAN_BERT":
-    #     BERT_embedding_layer = TFBertModel.from_pretrained('bert-base-uncased')(
-    #                                                         tokens_features_ids, attention_mask=tokens_features_attnmasks,
-    #                                                         output_hidden_states=True, return_dict=True)[
-    #                                                                                'hidden_states'][-4:]
-    # elif model_type == "HAN_RoBERTa":
-    #     BERT_embedding_layer = TFRobertaModel.from_pretrained('roberta-base')(
-    #                                                         tokens_features_ids, attention_mask=tokens_features_attnmasks,
-    #                                                         output_hidden_states=True, return_dict=True)[
-    #                                                                                'hidden_states'][-4:]
-    # else:
-    #     Exception("Unknown model type!")
+    BERT_embedding_layer = TFBertModel.from_pretrained("prajjwal1/bert-tiny", from_pt=True)(
+                                                        tokens_features_ids, attention_mask=tokens_features_attnmasks,
+                                                        output_hidden_states=True, return_dict=True)[
+                                                                               'hidden_states'][-hyperparams['sum_layers']:]
 
-    embedding_layer = Lambda(lambda x: create_embeddings(x, model_type))((tokens_features_ids,tokens_features_attnmasks))
+    #embedding_layer = Lambda(lambda x: tf.add_n([layer for layer in x]))(BERT_embedding_layer)
+    embedding_layer = Lambda(lambda x: tf.add_n(x))(BERT_embedding_layer)
 
     embedding_layer = Dropout(hyperparams['dropout'], name='embedding_dropout')(embedding_layer)
 
@@ -544,7 +543,9 @@ def build_HAN_BERT_TEST(hyperparams, hyperparams_features, model_type,
                         outputs=sent_representation, name='sentEncoder')
 
     #Set BERT/RoBERTa model to non-trainable
-    [setattr(layer, 'trainable', False) for layer in sentEncoder.layers if layer._name == 'tf_bert_model' or layer._name == 'tf_roberta_model']
+    if not hyperparams['trainable_bert_layer']:
+        [setattr(layer, 'trainable', False) for layer in sentEncoder.layers if layer._name == 'tf_bert_model'
+         or layer._name == 'tf_roberta_model' or layer._name == 'tf_albert_model']
 
     sentEncoder.summary()
 
@@ -588,40 +589,42 @@ def build_HAN_BERT_TEST(hyperparams, hyperparams_features, model_type,
     else:
         merged_layers = concatenate(layers_to_merge)
 
-    lstm_user_layers = LSTM(hyperparams['lstm_units_user'],
-                            return_sequences='attention_user' not in ignore_layer,
-                            name='LSTM_layer_user')(merged_layers)
+    if hyperparams["use_positional_encodings"]:
+        positional_encoding = SinePositionEncoding(name='positional_encoding')(merged_layers)
 
-    # Attention
-    if 'attention_user' not in ignore_layer:
-        attention_user_layer = Dense(1, activation='tanh', name='attention_user')
-        attention_user = attention_user_layer(lstm_user_layers)
-        attention_user = Flatten()(attention_user)
-        attention_user_output = Activation('softmax')(attention_user)
-        attention_user = RepeatVector(hyperparams['lstm_units_user'])(attention_user_output)
-        attention_user = Permute([2, 1])(attention_user)
-
-        user_representation = Multiply()([lstm_user_layers, attention_user])
-        user_representation = Lambda(lambda xin: K.sum(xin, axis=1),
-                                     output_shape=(hyperparams['lstm_units_user'],))(user_representation)
-
+        attention_input = Lambda(lambda x: tf.add_n(x), name='attention_input')([merged_layers, positional_encoding])
     else:
-        user_representation = lstm_user_layers
+        attention_input = merged_layers
 
-    user_representation = Dropout(hyperparams['dropout'], name='user_repr_dropout')(user_representation)
+    user_representation_attention = attention_input
+
+    for layer in range(hyperparams["num_layers"]):
+        user_representation_attention = MultiHeadAttention(num_heads=hyperparams["num_heads"],
+                                                           key_dim=hyperparams["key_dim"],
+                                                           dropout=hyperparams["dropout"],
+                                                           name=f"MH-attention_layer_{layer}")(
+            user_representation_attention, user_representation_attention)
+
+    user_representation_attention = Permute([2, 1])(user_representation_attention)
+    user_representation_attention = Dense(1, activation='sigmoid',
+                                          name='user_att_dense',
+                                          kernel_regularizer=regularizers.l2(hyperparams['l2_dense'])
+                                          )(user_representation_attention)
+    user_representation_attention = Lambda(lambda x: tf.squeeze(x, axis=2))(user_representation_attention)
+
+    user_representation = Dropout(hyperparams['dropout'], name='user_repr_dropout')(user_representation_attention)
 
     output_layer = Dense(1, activation='sigmoid',
                          name='output_layer',
                          kernel_regularizer=regularizers.l2(hyperparams['l2_dense'])
                          )(user_representation)
 
-    hierarchical_model_BERT = Model(inputs=[post_history_ids, post_history_attnmasks,
+    hierarchical_model_context = Model(inputs=[post_history_ids, post_history_attnmasks,
                                        numerical_features_history, sparse_features_history,
                                        ],
                                outputs=output_layer)
 
-    hierarchical_model_BERT.compile(hyperparams['optimizer'], K.binary_crossentropy,
+    hierarchical_model_context.compile(hyperparams['optimizer'], K.binary_crossentropy,
                                metrics=[AUC(), Precision(), Recall()])
 
-    return hierarchical_model_BERT
-
+    return hierarchical_model_context

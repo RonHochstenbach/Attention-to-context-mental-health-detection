@@ -39,7 +39,7 @@ hyperparams['optimizer'] = optimizers.legacy.Adam(learning_rate=hyperparams['lr'
 
 #IMPORT DATA
 task = "Self-Harm"                     #"Self-Harm" - "Anorexia" - "Depression"
-model_type = "HAN_BERT"                #"HAN" - "HAN_BERT" - "HAN_RoBERTa" - "HSAN"
+model_type = "Con_HAN"                 #"HAN" - "HAN_BERT" - "HSAN" - "Con_HAN"
 print(f"Running {task} task using the {model_type} model!")
 
 save = True
@@ -49,14 +49,7 @@ else:
     print("Model will NOT be saved!")
 save_epoch = True
 continue_from_saved = False
-saved_path ='/Users/ronhochstenbach/Downloads/Self-Harm_HAN_BERT_2023-07-19 14_49_06.363614_03.hdf5'
-
-# if (model_type == "HAN_BERT" or model_type == "HAN_RoBERTa") and hyperparams['batch_size'] > 9:
-#     raise Warning("WILL PROBABLY RESULT IN OOM ISSUES!")
-
-# writings_df = pd.read_pickle(root_dir + "/Processed Data/df_" + task + ".pkl")
-# writings_df = tokenize_fields_bert(writings_df, columns=['text', 'title'])
-# writings_df.to_pickle("/Users/ronhochstenbach/Desktop/Thesis/Data/Processed Data/tokenized_df_BERT_" + task + ".pkl")
+saved_path ='/Users/ronhochstenbach/Desktop/Thesis/Data/Saved Models/Self-Harm_HAN_BERT_2023-07-25 14:50:15.909116_04.hdf5'
 
 writings_df = pd.read_pickle(root_dir + "/Processed Data/tokenized_df_" + task + ".pkl")
 
@@ -67,6 +60,7 @@ user_level_data, subjects_split, vocabulary = load_erisk_data(writings_df,train_
 
 print(f"There are {len(user_level_data)} subjects, of which {len(subjects_split['train'])} train and {len(subjects_split['test'])} test.")
 
+
 with tf.device('GPU:0' if tf.config.list_physical_devices('GPU') else 'CPU:0'):
     print(f"Training on {'GPU:0' if tf.config.list_physical_devices('GPU') else 'CPU:0'}!")
 
@@ -75,7 +69,6 @@ with tf.device('GPU:0' if tf.config.list_physical_devices('GPU') else 'CPU:0'):
     data_generator_train, data_generator_valid = initialize_datasets(user_level_data, subjects_split,
                                                                      hyperparams, hyperparams_features, model_type,
                                                                      validation_set='valid')
-
 
     model, history = train(user_level_data, subjects_split, save, save_epoch, store_path,
                               continue_from_saved, saved_path,

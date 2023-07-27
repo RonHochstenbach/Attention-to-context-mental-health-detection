@@ -2,7 +2,7 @@ from callbacks import FreezeLayer, WeightsHistory, LRHistory
 from keras import callbacks
 import logging, sys, os
 from data_generator import DataGenerator_Base, DataGenerator_BERT
-from models import build_HAN, build_HAN_BERT, build_HSAN
+from models import build_HAN, build_HAN_BERT, build_HSAN, build_Context_HAN
 from resource_loader import load_NRC, load_LIWC, load_stopwords
 import keras
 import multiprocessing
@@ -39,7 +39,7 @@ def initialize_datasets(user_level_data, subjects_split, hyperparams, hyperparam
                                              compute_liwc=True,
                                              ablate_emotions='emotions' in hyperparams['ignore_layer'],
                                              ablate_liwc='liwc' in hyperparams['ignore_layer'])
-    elif model_type == "HAN_BERT" or model_type == "HAN_RoBERTa":
+    elif model_type == "HAN_BERT" or model_type == "Con_HAN":
         data_generator_train = DataGenerator_BERT(user_level_data, subjects_split, set_type='train',
                                                   hyperparams_features=hyperparams_features, model_type=model_type,
                                                   seq_len=hyperparams['maxlen'], batch_size=hyperparams['batch_size'],
@@ -107,6 +107,10 @@ def initialize_model(hyperparams, hyperparams_features, model_type,
                                          ignore_layer=hyperparams['ignore_layer'])
     elif model_type == 'HSAN':
         model = build_HSAN(hyperparams, hyperparams_features,
+                                         emotions_dim, stopwords_dim, liwc_categories_dim,
+                                         ignore_layer=hyperparams['ignore_layer'])
+    elif model_type == 'Con_HAN':
+        model = build_Context_HAN(hyperparams, hyperparams_features,
                                          emotions_dim, stopwords_dim, liwc_categories_dim,
                                          ignore_layer=hyperparams['ignore_layer'])
     else:

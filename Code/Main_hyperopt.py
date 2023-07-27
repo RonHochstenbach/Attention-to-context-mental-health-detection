@@ -60,7 +60,7 @@ print(f"There are {len(user_level_data)} subjects, of which {len(subjects_split[
 with tf.device('GPU:0' if tf.config.list_physical_devices('GPU') else 'CPU:0'):
     print(f"Training on {'GPU:0' if tf.config.list_physical_devices('GPU') else 'CPU:0'}!")
 
-    max_hyperopt_trials = 8
+    max_hyperopt_trials = 10
     tune_epochs = 10
 
     #Defining the hyperparameter search space and setting up the experiment
@@ -125,6 +125,7 @@ with tf.device('GPU:0' if tf.config.list_physical_devices('GPU') else 'CPU:0'):
 
     if model_type == "HAN_BERT":
         parameter_space["sum_layers"] = {"type": "integer", "min": 1, "max": 4}
+        parameter_space['trainable_bert_layer'] = {"type": "discrete", "values": [False]}
 
     config = {
         "algorithm": "bayes",
