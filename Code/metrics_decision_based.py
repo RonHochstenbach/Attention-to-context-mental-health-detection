@@ -3,7 +3,7 @@ from sklearn.metrics import precision_score, recall_score, f1_score
 import numpy as np
 from tqdm import tqdm
 
-def evaluate_for_subjects(model, data_gen, subjects, user_level_data, hyperparams, hyperparams_features,
+def evaluate_for_subjects(model, data_gen, subjects, user_level_data, hyperparams, hyperparams_features, model_type,
                           alert_threshold=0.5, rolling_window=0, print_output=False):
     erisk_metricst2 = EriskScoresT1T2()
     threshold = alert_threshold
@@ -17,14 +17,28 @@ def evaluate_for_subjects(model, data_gen, subjects, user_level_data, hyperparam
 
         if print_output: print(subject, "Label", true_label)
 
-        predictions = model.predict(data_gen(user_level_data_subject, {'test': [subject]},
-                                                  set_type='test', hyperparams_features=hyperparams_features,
-                                                  seq_len=hyperparams['maxlen'],
-                                                  batch_size=hyperparams['batch_size'],  # on all data at once
-                                                  max_posts_per_user=None,
-                                                  posts_per_group=hyperparams['posts_per_group'],
-                                                  post_groups_per_user=None, compute_liwc=True,
-                                                  shuffle=False), verbose=0)
+        if model_type == "HAN" or model_type == "HSAN":
+            predictions = model.predict(data_gen(user_level_data_subject, {'test': [subject]},
+                                                 set_type='test', hyperparams_features=hyperparams_features,
+                                                 seq_len=hyperparams['maxlen'],
+                                                 batch_size=hyperparams['batch_size'],  # on all data at once
+                                                 max_posts_per_user=None,
+                                                 posts_per_group=hyperparams['posts_per_group'],
+                                                 post_groups_per_user=None, compute_liwc=True,
+                                                 shuffle=False), verbose=0)
+        elif model_type == "HAN_BERT" or model_type == "Con_HAN":
+            predictions = model.predict(data_gen(user_level_data_subject, {'test': [subject]},
+                                                 set_type='test', hyperparams_features=hyperparams_features,
+                                                 seq_len=hyperparams['maxlen'],
+                                                 batch_size=hyperparams['batch_size'],  # on all data at once
+                                                 model_type = model_type,
+                                                 max_posts_per_user=None,
+                                                 posts_per_group=hyperparams['posts_per_group'],
+                                                 post_groups_per_user=None, compute_liwc=True,
+                                                 shuffle=False), verbose=0)
+        else:
+            raise Exception("Unknown type!")
+
         predictions = [p[0] for p in predictions]
         if rolling_window:
             rolling_predictions = []

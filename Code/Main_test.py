@@ -1,5 +1,8 @@
 import pandas as pd
+from tensorflow.keras import optimizers
+from keras.models import load_model
 
+from hyperparameters import hyperparams, hyperparams_features
 from load_save_model import load_saved_model_weights, load_params
 from data_generator import DataGenerator_Base, DataGenerator_BERT
 from data_loader import load_erisk_data
@@ -8,15 +11,17 @@ from metrics_decision_based import evaluate_for_subjects
 root_dir = "/Users/ronhochstenbach/Desktop/Thesis/Data"
 #root_dir = "/content/drive/MyDrive/Thesis/Data"  #when cloning for colab
 
-saved_path = '/Users/ronhochstenbach/Desktop/Thesis/Data/Saved Models/Final Trained Models (10 epochs)/Self-Harm/Self-Harm_HAN_TinyBERT_2023-07-25 08:59:24.586245'
+saved_path = '/Users/ronhochstenbach/Desktop/Thesis/Data/Saved Models/Final Trained Models (10 epochs)/Self-Harm/Self-Harm_Con_HAN_2023-07-27 11:02:20.050187'
 
-hyperparams, hyperparams_features = load_params(saved_path)
+#hyperparams, hyperparams_features = load_params(saved_path)
+hyperparams['optimizer'] = optimizers.legacy.Adam(learning_rate=hyperparams['lr'],
+                                                  decay = hyperparams['decay'])
 
 task = "Self-Harm"          #"Self-Harm" - "Anorexia" - "Depression"
-model_type = "HAN_BERT"          #"HAN" - "HAN_BERT"
+model_type = "Con_HAN"          #"HAN" - "HAN_BERT"
 print(f"Running {task} task using the {model_type} model!")
 
-analysis_type = "Keras"  #"Custom" or "Keras"
+analysis_type = "Custom"  #"Custom" or "Keras"
 
 #IMPORT DATA AND CREATE DATAGENERATOR
 writings_df = pd.read_pickle(root_dir + "/Processed Data/tokenized_df_" + task + ".pkl")
@@ -38,7 +43,7 @@ if model_type == "HAN" or model_type == "HSAN":
                                               compute_liwc=True,
                                               ablate_emotions='emotions' in hyperparams['ignore_layer'],
                                               ablate_liwc='liwc' in hyperparams['ignore_layer'])
-elif model_type == "HAN_BERT" or model_type == "HAN_RoBERTa":
+elif model_type == "HAN_BERT" or model_type == "Con_HAN":
     data_gen_class = DataGenerator_BERT
     data_generator_test = DataGenerator_BERT(user_level_data, subjects_split, set_type='test',
                                               hyperparams_features=hyperparams_features, model_type=model_type,
@@ -58,7 +63,7 @@ model = load_saved_model_weights(saved_path, hyperparams, hyperparams_features, 
 if analysis_type == "Keras":
     model.evaluate(data_generator_test)
 elif analysis_type == "Custom":
-    results = evaluate_for_subjects(model, data_gen_class, subjects_split['test'], user_level_data, hyperparams, hyperparams_features,
+    results = evaluate_for_subjects(model, data_gen_class, subjects_split['test'], user_level_data, hyperparams, hyperparams_features, model_type,
                               alert_threshold=0.5, rolling_window=0)
     for metric, value in results.items():
         print(f"{metric}: {value}")
