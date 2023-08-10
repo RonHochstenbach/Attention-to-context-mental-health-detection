@@ -41,7 +41,7 @@ hyperparams = {
 
     #Training
     "decay": 0.001,
-    "lr": 0.0005,                   #appendix uban 0.0001 (han), 0.0005 hsan, 0,0002 han_bert, 0,0005 Con_HAN
+    "lr": 0.0002,                   #appendix uban 0.0001 (han), 0.0005 hsan, 0,0002 han_bert, 0,0005 Con_HAN
     "reduce_lr_factor": 0.5,        #originally 0.5
     "reduce_lr_patience": 55,        #originally 55
     "scheduled_reduce_lr_freq": 95,  #originally: 95

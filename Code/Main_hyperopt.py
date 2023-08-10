@@ -63,33 +63,6 @@ with tf.device('GPU:0' if tf.config.list_physical_devices('GPU') else 'CPU:0'):
     max_hyperopt_trials = 10
     tune_epochs = 10
 
-    #Defining the hyperparameter search space and setting up the experiment
-    # parameter_space = {
-    #     "lstm_units": {"type": "discrete", "values": [128]},                                         # Fixed
-    #     "lstm_units_user": {"type": "discrete", "values": [32]},                                        # Fixed
-    #     "dense_bow_units": {"type": "discrete", "values": [20]},                                        # Fixed
-    #     "dense_numerical_units": {"type": "discrete", "values": [20]},  # Fixed
-    #     "lr": {"type": "float", "min": 0.0005, "max": 0.2, "scalingType": "loguniform"},
-    #     "l2_dense": {"type": "float", "min": 0.0000001, "max": 0.1, "scalingType": "loguniform"},
-    #     "l2_embeddings": {"type": "float", "min": 0.00000001, "max": 0.2, "scalingType": "loguniform"},
-    #     "dropout": {"type": "float", "min": 0, "max": 0.5, "scalingType": "uniform"},
-    #     "norm_momentum": {"type": "float", "min": 0, "max": 0.99, "scalingType": "uniform"},
-    #     "batch_size": {"type": "discrete", "values" :[2,4,8,16,32,64]},           #ADAPT BASED ON ALGO AND WHERE RUNNING!
-    #     "positive_class_weight": {"type": "integer", "min": 2, "max": 10},
-    #     "trainable_embeddings": {"type": "discrete", "values": [True, False]},
-    #     "sample_seqs": {"type": "discrete", "values": [True, False]},
-    #     "freeze_patience": {"type": "integer", "min": 2, "max": tune_epochs + 1},
-    #     "lr_reduce_factor": {"type": "float", "min": 0.0001, "max": 0.8},
-    #     "scheduled_lr_reduce_factor": {"type": "float", "min": 0.0001, "max": 0.8},
-    #     "lr_reduce_patience": {"type": "integer", "min": 2, "max": tune_epochs + 1},
-    #     "scheduled_lr_reduce_patience": {"type": "integer", "min": 2, "max": tune_epochs + 1},
-    #     "early_stopping_patience": {"type": "integer", "min": 2, "max": tune_epochs + 1},
-    #     "decay": {"type": "float", "min": 0.00000001, "max": 0.5, "scalingType": "loguniform"},
-    #     "sampling_distr": {"type": "categorical", "values": ["exp", "uniform"]},
-    #     "posts_per_group": {"type": "discrete", "values": [50]},                                        # Fixed
-    #     "maxlen": {"type": "discrete", "values": [256]},                                                 # Fixed
-    # }
-
     parameter_space = {
         "lstm_units": {"type": "discrete", "values": [128]},                                         # Fixed
         "lstm_units_user": {"type": "discrete", "values": [32]},                                        # Fixed
@@ -100,7 +73,7 @@ with tf.device('GPU:0' if tf.config.list_physical_devices('GPU') else 'CPU:0'):
         "l2_embeddings": {"type": "discrete", "values": [0.00001]},
         "dropout": {"type": "discrete", "values": [0.3]},
         "norm_momentum": {"type": "discrete", "values": [0.1]},
-        "batch_size": {"type": "discrete", "values" :[32]},           #ADAPT BASED ON ALGO AND WHERE RUNNING!
+        "batch_size": {"type": "discrete", "values" :[32]},
         "positive_class_weight": {"type": "discrete", "values" :[2]},
         "trainable_embeddings": {"type": "discrete", "values": [True]},
         "sample_seqs": {"type": "discrete", "values": [False]},

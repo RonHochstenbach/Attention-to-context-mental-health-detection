@@ -39,7 +39,7 @@ hyperparams['optimizer'] = optimizers.legacy.Adam(learning_rate=hyperparams['lr'
 
 #IMPORT DATA
 task = "Depression"                     #"Self-Harm" - "Anorexia" - "Depression"
-model_type = "HSAN"                 #"HAN" - "HAN_BERT" - "HSAN" - "Con_HAN"
+model_type = "HAN_BERT"                 #"HAN" - "HAN_BERT" - "HSAN" - "Con_HAN"
 print(f"Running {task} task using the {model_type} model!")
 
 save = True
