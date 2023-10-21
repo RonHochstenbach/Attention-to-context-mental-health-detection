@@ -196,5 +196,5 @@ class EriskScoresT1T2(datasets.Metric):
                 "recall": recall_score(y_true, y_pred),
                 "f1": f1_score(y_true, y_pred),
                 "latency_f1": f1_score(y_true, y_pred) * (1 - penalty_score),
-                "erde5": self._erde(predictions, references, posts_per_datapoint, 1),
-                "erde50": self._erde(predictions, references, posts_per_datapoint, 2)}
+                "erde0": self._erde(predictions, references, posts_per_datapoint, 0.1),
+                "erde1": self._erde(predictions, references, posts_per_datapoint, 1)}
