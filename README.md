@@ -1,4 +1,5 @@
-This repository contains the code written for the paper "Paying Attention to Context When Detecting Mental Health Disorders Through Natural Language Processing".
+This repository contains the code written for the paper "A Contextual Hierarchical Attention Network for Detecting Mental
+Health Disorders Using Social Media".
 
 
 It is based upon (but heavily modifies) the code writtenfor the work "An emotion and cognitive based analysis of mental health disorders from social media data" by Ana-Sabina Uban, Berta Chulvi and Paolo Rosso, which can be found at
